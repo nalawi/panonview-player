@@ -1,0 +1,73 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log.*
+
+# Dependency directories
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+release/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sw?
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.vcxproj
+*.vcxproj.*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Testing / coverage
+coverage/
+.nyc_output/
+*.lcov
+junit.xml
+
+# Caches
+.cache/
+.vite/
+.eslintcache
+.stylelintcache
+.turbo/
+
+# Process / temp files
+*.pid
+*.seed
+*.pid.lock
+tmp/
+temp/
+
+# Tauri / Rust build artifacts (target is also covered by src-tauri/.gitignore)
+src-tauri/target/
