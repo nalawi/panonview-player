@@ -1,8 +1,54 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { useDisplayStore } from "../stores/display";
-import { getInitialUrl, reportPageLoaded } from "../services/tauri";
-import type { DisplayStatus } from "../types";
+import { getDisplayStatus, getInitialUrl, reportPageLoaded } from "../services/tauri";
+import type { DisplayMode, DisplayStatus } from "../types";
+
+/** Snapshot of the last active page, kept locally so the player can show it
+ * instantly on the very first frame after a restart — before the Rust side
+ * has even answered. The Rust display state remains authoritative; this is
+ * only the boot-up seed. */
+interface LastSession {
+  url: string;
+  mode: DisplayMode;
+  pageId: number | null;
+}
+
+const SESSION_KEY = "panonview:last_session";
+
+function readSession(): LastSession | null {
+  try {
+    const raw = window.localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LastSession>;
+    if (typeof parsed.url === "string" && parsed.url) {
+      return {
+        url: parsed.url,
+        mode: (parsed.mode ?? "manual") as DisplayMode,
+        pageId: typeof parsed.pageId === "number" ? parsed.pageId : null,
+      };
+    }
+  } catch {
+    /* corrupt or unavailable storage — nothing to restore */
+  }
+  return null;
+}
+
+function writeSession(session: LastSession) {
+  try {
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {
+    /* storage may be unavailable — restoring still works via Rust */
+  }
+}
+
+function clearSession() {
+  try {
+    window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 /**
  * The fullscreen player. Renders the current URL inside a borderless iframe
@@ -14,6 +60,7 @@ export function PlayerView() {
   const url = useDisplayStore((s) => s.url);
   const reloadToken = useDisplayStore((s) => s.reloadToken);
   const mode = useDisplayStore((s) => s.mode);
+  const pageId = useDisplayStore((s) => s.pageId);
   const applyNavigate = useDisplayStore((s) => s.applyNavigate);
   const setOffline = useDisplayStore((s) => s.setOffline);
   const setAdminMode = useDisplayStore((s) => s.setAdminMode);
@@ -21,6 +68,8 @@ export function PlayerView() {
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [showHint, setShowHint] = useState(true);
+  /** True once Rust has answered with the authoritative startup URL. */
+  const [resolved, setResolved] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   // Live clock for the "waiting for content" standby screen.
@@ -30,14 +79,60 @@ export function PlayerView() {
     return () => window.clearInterval(t);
   }, []);
 
-  // Resolve the initial URL on first mount.
+  // Resolve the initial URL on first mount. The locally remembered session is
+  // applied synchronously (so the last active page shows up immediately after
+  // a restart), then reconciled with the Rust display state, which is the
+  // single source of truth.
   useEffect(() => {
-    getInitialUrl().then((u) => {
-      if (u) {
-        useDisplayStore.getState().setUrl(u);
+    const session = readSession();
+    if (session) {
+      useDisplayStore.setState({
+        url: session.url,
+        mode: session.mode,
+        pageId: session.pageId,
+      });
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [url, status] = await Promise.all([getInitialUrl(), getDisplayStatus()]);
+        if (cancelled) return;
+        if (url) {
+          // Continue showing the last active page/URL.
+          useDisplayStore.getState().setUrl(url);
+          useDisplayStore.setState({
+            mode: status?.mode ?? "manual",
+            pageId: status?.current_page_id ?? null,
+          });
+        } else {
+          // Rust says there is nothing to show (idle/standby) — forget the
+          // remembered session so it does not come back on the next boot.
+          clearSession();
+          useDisplayStore.getState().setUrl(null);
+        }
+      } catch {
+        // IPC unavailable: keep the remembered page on screen (offline-first).
+      } finally {
+        if (!cancelled) setResolved(true);
       }
-    });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  // Record the active page/URL on every navigation so a stop or crash can be
+  // recovered from on the next launch.
+  useEffect(() => {
+    if (url) {
+      writeSession({ url, mode, pageId });
+    } else if (resolved) {
+      // Only clear once Rust has confirmed there is no active page.
+      clearSession();
+    }
+  }, [url, mode, pageId, resolved]);
 
   // Navigate events from Rust.
   useEffect(() => {

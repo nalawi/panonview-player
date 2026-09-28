@@ -24,6 +24,10 @@ can later join a central management platform without depending on it.
   supersede the scheduler and auto-resume when they expire.
 - **Offline-first:** the scheduler keeps running and the last successful page
   is shown instead of a blank screen.
+- **Remembers the last active page:** the current page/URL (and the
+  back/forward history) is persisted in SQLite and in local storage, so after
+  a stop, crash, or reboot the player boots straight back into the same
+  screen.
 - **Authentication:** API key / Bearer auth plus CIDR IP allowlisting. An API
   key is generated on first boot so the API is never exposed unauthenticated.
 - **Hidden admin UI** (React) reachable at `#/admin`, bypassable so normal

@@ -5,6 +5,12 @@ use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter};
 
+/// Settings key under which the navigation history is persisted, so back /
+/// forward state (and therefore the last active page) survives a restart.
+const HISTORY_SETTING: &str = "display_history";
+/// Cap the persisted history so the settings table cannot grow unbounded.
+const HISTORY_LIMIT: usize = 100;
+
 /// Navigation payload emitted to the frontend.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct NavigatePayload {
@@ -53,6 +59,12 @@ impl History {
         }
         self.entries.push(url.to_string());
         self.index = self.entries.len() as i64 - 1;
+        // Keep the persisted history bounded.
+        if self.entries.len() > HISTORY_LIMIT {
+            let overflow = self.entries.len() - HISTORY_LIMIT;
+            self.entries.drain(..overflow);
+            self.index -= overflow as i64;
+        }
     }
 
     fn back(&mut self) -> Option<String> {
@@ -82,6 +94,33 @@ impl History {
         // usize to avoid an overflow (and an index past the end).
         self.index >= 0 && (self.index as usize + 1) < self.entries.len()
     }
+
+    /// Rebuild a history from its persisted JSON representation
+    /// (`{"entries":[...],"index":n}`). Falls back to an empty history when
+    /// the value is missing or malformed.
+    fn restore(raw: &str) -> Self {
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(raw) {
+            let entries: Vec<String> = v
+                .get("entries")
+                .and_then(|e| e.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default();
+            if !entries.is_empty() {
+                let default_index = entries.len() as i64 - 1;
+                let index = v
+                    .get("index")
+                    .and_then(|i| i.as_i64())
+                    .unwrap_or(default_index)
+                    .clamp(0, default_index);
+                return Self { entries, index };
+            }
+        }
+        Self::new()
+    }
 }
 
 /// The DisplayController is the single source of truth for what is shown on
@@ -98,13 +137,56 @@ pub struct DisplayController {
 
 impl DisplayController {
     pub fn new(db: Database) -> Self {
-        Self {
+        // Rebuild the navigation history persisted by the previous run so the
+        // player comes back exactly where it left off (including back/forward).
+        let restored = History::restore(&db.get_setting_or(HISTORY_SETTING, ""));
+        let controller = Self {
             db,
             app: Arc::new(Mutex::new(None)),
-            history: Arc::new(Mutex::new(History::new())),
+            history: Arc::new(Mutex::new(restored)),
             scheduler_running: Arc::new(AtomicBool::new(false)),
             reload_token: Arc::new(AtomicI64::new(0)),
+        };
+        controller.seed_restored_state();
+        controller
+    }
+
+    /// After a restart, make sure the persisted "last active page" is at the
+    /// top of the (possibly freshly restored) history so back/forward behave
+    /// as if the app had never stopped.
+    fn seed_restored_state(&self) {
+        let state = match self.db.get_display_state() {
+            Ok(s) => s,
+            Err(_) => return,
+        };
+        let url = match state.current_url {
+            Some(u) if !u.is_empty() => u,
+            _ => return,
+        };
+        if let Ok(mut h) = self.history.lock() {
+            h.push(&url);
         }
+        self.persist_history();
+    }
+
+    /// Write the in-memory history back to the settings table. Called after
+    /// every mutation so an abrupt process kill cannot lose it.
+    fn persist_history(&self) {
+        let payload = {
+            let guard = match self.history.lock() {
+                Ok(g) => g,
+                Err(_) => return,
+            };
+            if guard.entries.is_empty() {
+                return;
+            }
+            serde_json::json!({
+                "entries": guard.entries,
+                "index": guard.index,
+            })
+            .to_string()
+        };
+        let _ = self.db.set_setting(HISTORY_SETTING, &payload);
     }
 
     /// Attach the Tauri app handle once it becomes available at setup time.
@@ -161,6 +243,7 @@ impl DisplayController {
                 h.push(url);
             }
         }
+        self.persist_history();
         self.emit_navigate(url, mode, page_id);
     }
 
@@ -212,6 +295,7 @@ impl DisplayController {
                 ..state
             };
             let _ = self.db.set_display_state(&new_state);
+            self.persist_history();
             self.emit_navigate(current, &new_state.mode, new_state.current_page_id);
         }
         Ok(url)
@@ -232,6 +316,7 @@ impl DisplayController {
                 ..state
             };
             let _ = self.db.set_display_state(&new_state);
+            self.persist_history();
             self.emit_navigate(current, &new_state.mode, new_state.current_page_id);
         }
         Ok(url)
@@ -344,6 +429,7 @@ impl DisplayController {
                 h.push(&target.url);
             }
         }
+        self.persist_history();
         self.emit_navigate(&target.url, &target.mode, target.page_id);
     }
 
@@ -377,11 +463,27 @@ impl DisplayController {
     }
 
     /// Resolve the URL the player should show at startup.
+    ///
+    /// The persisted `current_url` (the last active page/URL before the app
+    /// stopped) always wins, so a restart continues exactly where it left off.
+    /// The only exception is an override whose expiry passed while the app was
+    /// not running — that stale content must not be restored.
     pub fn initial_url(&self) -> Option<String> {
         let state = self.db.get_display_state().ok()?;
-        if let Some(url) = state.current_url {
-            if !url.is_empty() {
-                return Some(url);
+
+        let override_expired = state.mode == MODE_OVERRIDE
+            && state
+                .expires_at
+                .as_deref()
+                .and_then(|exp| chrono::DateTime::parse_from_rfc3339(exp).ok())
+                .map(|exp| exp.with_timezone(&chrono::Utc) <= chrono::Utc::now())
+                .unwrap_or(false);
+
+        if !override_expired {
+            if let Some(url) = state.current_url {
+                if !url.is_empty() {
+                    return Some(url);
+                }
             }
         }
         let target = scheduler::compute_target(&self.db)?;
