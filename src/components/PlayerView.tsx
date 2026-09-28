@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useDisplayStore } from "../stores/display";
 import { getDisplayStatus, getInitialUrl, reportPageLoaded } from "../services/tauri";
 import type { DisplayMode, DisplayStatus } from "../types";
+import PlayerIdleScreen from './PlayerIdleScreen';
 
 /** Snapshot of the last active page, kept locally so the player can show it
  * instantly on the very first frame after a restart — before the Rust side
@@ -73,11 +74,11 @@ export function PlayerView() {
   const timeoutRef = useRef<number | null>(null);
 
   // Live clock for the "waiting for content" standby screen.
-  const [clock, setClock] = useState(() => new Date());
-  useEffect(() => {
-    const t = window.setInterval(() => setClock(new Date()), 1000);
-    return () => window.clearInterval(t);
-  }, []);
+  // const [clock, setClock] = useState(() => new Date());
+  // useEffect(() => {
+  //   const t = window.setInterval(() => setClock(new Date()), 1000);
+  //   return () => window.clearInterval(t);
+  // }, []);
 
   // Resolve the initial URL on first mount. The locally remembered session is
   // applied synchronously (so the last active page shows up immediately after
@@ -217,66 +218,7 @@ export function PlayerView() {
       ) : (
         // Standby screen shown until a page/URL is configured: a calm,
         // full-screen default view instead of a bare error message.
-        <div
-          className="flex h-full w-full items-center justify-center"
-          style={{
-            background:
-              "radial-gradient(120% 120% at 50% 0%, #16213e 0%, #0b0f19 55%, #070a12 100%)",
-          }}
-        >
-          <div className="flex flex-col items-center px-6 text-center">
-            <div
-              className="flex h-20 w-20 items-center justify-center rounded-2xl"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-                boxShadow: "0 18px 40px -12px rgba(59, 130, 246, 0.55)",
-              }}
-            >
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="2" y="4" width="20" height="14" rx="2" />
-                <path d="M8 21h8" />
-                <path d="M12 18v3" />
-                <path d="M10 9.5l4 2.5-4 2.5z" fill="#ffffff" stroke="none" />
-              </svg>
-            </div>
-
-            <div className="mt-6 text-2xl font-semibold text-slate-100">
-              Ready to play
-            </div>
-            <div className="mt-2 max-w-md text-sm leading-relaxed text-slate-400">
-              No page is configured yet. Add one in the admin UI or send a URL
-              to the player API — your content will appear here fullscreen.
-            </div>
-
-            <div className="mt-6 rounded-md border border-slate-700 bg-panel px-3 py-2 font-mono text-xs text-slate-400">
-              {"POST http://<device>:8787/api/v1/display"}
-            </div>
-
-            <div className="mt-10 text-5xl font-semibold text-slate-200">
-              {clock.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-            <div className="mt-1 text-xs uppercase tracking-wide text-slate-500">
-              {clock.toLocaleDateString([], {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-            </div>
-          </div>
-        </div>   
+        <PlayerIdleScreen />
       )}
 
       {/* Loading hint (subtle, auto-hides). */}
