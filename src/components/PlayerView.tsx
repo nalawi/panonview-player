@@ -4,6 +4,7 @@ import { useDisplayStore } from "../stores/display";
 import { getDisplayStatus, getInitialUrl, reportPageLoaded } from "../services/tauri";
 import type { DisplayMode, DisplayStatus } from "../types";
 import PlayerIdleScreen from './PlayerIdleScreen';
+import PlayerLogo from './PlayerLogo';
 
 /** Snapshot of the last active page, kept locally so the player can show it
  * instantly on the very first frame after a restart — before the Rust side
@@ -205,6 +206,7 @@ export function PlayerView() {
   return (
     <div className="relative h-full w-full overflow-hidden bg-player-bg">
       {url ? (
+        <>
         <iframe
           key={iframeKey}
           src={url}
@@ -215,6 +217,8 @@ export function PlayerView() {
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-presentation"
           referrerPolicy="no-referrer"
         />
+        <PlayerLogo />
+        </>
       ) : (
         // Standby screen shown until a page/URL is configured: a calm,
         // full-screen default view instead of a bare error message.

@@ -71,3 +71,4 @@ temp/
 
 # Tauri / Rust build artifacts (target is also covered by src-tauri/.gitignore)
 src-tauri/target/
+.vscode
