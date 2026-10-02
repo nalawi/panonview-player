@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import abstractBg from "../assets/abstract.jpg";
+import PanonViewLogo from "./PanonViewLogo";
 
 const PlayerIdleScreen = () => {
   const [clock, setClock] = useState(new Date());
@@ -48,30 +49,11 @@ const PlayerIdleScreen = () => {
 
       {/* Centered status content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center">
-        {/* Device Icon */}
-        <div
-          className="flex h-24 w-24 items-center justify-center rounded-3xl"
-          style={{
-            background: "linear-gradient(135deg, #3b83f6b5, #6365f1bc)",
-            boxShadow: "0 20px 50px -12px rgba(59, 130, 246, 0.6)",
-          }}
-        >
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#ffffff"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="2" y="4" width="20" height="14" rx="2" />
-            <path d="M8 21h8" />
-            <path d="M12 18v3" />
-            <path d="M10 9.5l4 2.5-4 2.5z" fill="#ffffff" stroke="none" />
-          </svg>
+        {/* Brand logo — scales with the viewport so it stays proportional */}
+        <div className="flex items-center justify-center">
+          <div className="w-[clamp(180px,22vw,380px)] drop-shadow-[0_4px_24px_rgba(0,0,0,0.45)]">
+            <PanonViewLogo className="w-full" />
+          </div>
         </div>
 
         {/* Status Text */}

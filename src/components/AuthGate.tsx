@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { setStoredKey, httpVerifyKey } from "../services/http";
-
+import PanonViewLogo from "./PanonViewLogo";
 interface Props {
   onAuthed: () => void;
 }
@@ -43,11 +43,8 @@ export function AuthGate({ onAuthed }: Props) {
         onSubmit={submit}
         className="w-full max-w-md rounded-xl border border-slate-800 bg-panel p-6 shadow-2xl"
       >
-        <div className="mb-1 flex items-center gap-2">
-          <div className="h-2.5 w-2.5 rounded-full bg-accent" />
-          <h1 className="text-lg font-semibold text-slate-100">
-            PanonView Player Admin
-          </h1>
+        <div className="mb-1 flex items-center gap-2 items-center justify-center">
+          <PanonViewLogo className="flex h-16 w-70" />
         </div>
         <p className="mb-5 text-sm text-slate-400">
           Enter the device API key to manage this player.

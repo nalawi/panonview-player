@@ -3,6 +3,7 @@ import { useState } from "react";
 import { setAdminMode, isTauri } from "../services/api";
 import { useDisplayStore } from "../stores/display";
 import type { Device } from "../types";
+import PanonViewLogo from "./PanonViewLogo";
 
 interface Props {
   children: React.ReactNode;
@@ -48,8 +49,9 @@ export function AdminLayout({
     <div className="flex h-full w-full flex-col bg-player-bg text-slate-100">
       <header className="flex items-center justify-between border-b border-slate-800 bg-panel px-5 py-3">
         <div className="flex items-center gap-3">
-          <div className="h-2.5 w-2.5 rounded-full bg-accent" />
-          <h1 className="text-lg font-semibold">PanonView Player</h1>
+         
+          {/* <h1 className="text-lg font-semibold">PanonView Player</h1> */}
+          <PanonViewLogo className="flex h-14 w-60" />
           <span className="text-xs text-slate-500">
             {device?.name ?? "unconfigured"}
           </span>
