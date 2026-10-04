@@ -91,6 +91,12 @@ fn presented_key(req: &Request<Body>) -> Option<String> {
 ///
 /// The health-check path and preflight OPTIONS requests are always allowed so
 /// external systems can probe availability before authenticating.
+///
+/// Every HTTP client — including loopback — must present the API key while
+/// `auth_mode` is `apikey` and a key is configured. (The desktop app itself
+/// uses trusted Tauri IPC, not this HTTP API, so it needs no login.) Keys are
+/// never accepted from loopback without verification, otherwise the browser
+/// admin console's login gate would be a no-op on the host machine.
 pub async fn auth_middleware(
     State(state): State<AppState>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
@@ -120,15 +126,12 @@ pub async fn auth_middleware(
         .into_response();
     }
 
-    // Local loopback is always trusted (the admin UI on the same machine).
-    let is_loopback = client_ip.is_loopback();
-
-    // 2. Authentication.
+    // 2. Authentication — required for every client while enabled.
     let auth_mode = db.get_setting_or("auth_mode", "apikey");
     let expected = db.get_setting_or("api_key", "");
     let auth_disabled = auth_mode.eq_ignore_ascii_case("none") || expected.trim().is_empty();
 
-    if !is_loopback && !auth_disabled {
+    if !auth_disabled {
         match presented_key(&req) {
             Some(key) if constant_time_eq(&key, expected.trim()) => {}
             _ => {
@@ -138,8 +141,11 @@ pub async fn auth_middleware(
                 .into_response();
             }
         }
+    }
 
-        // Remote control must be explicitly allowed for non-loopback clients.
+    // 3. Remote control must be explicitly allowed for non-loopback clients.
+    let is_loopback = client_ip.is_loopback();
+    if !is_loopback {
         let allow_remote = db.get_setting_or("allow_remote", "true");
         if allow_remote.eq_ignore_ascii_case("false") {
             return ApiError::forbidden("Remote control is disabled").into_response();

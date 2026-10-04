@@ -12,7 +12,7 @@ import { useDisplayStore } from "./stores/display";
 import { useDisplayEvents } from "./hooks/useDisplayEvents";
 import { getDevice } from "./services/api";
 import { isTauri, getStoredKey, clearStoredKey, httpVerifyKey } from "./services/api";
-import { httpBootstrapAuth } from "./services/http";
+import { httpAuthRequired } from "./services/http";
 import type { Device } from "./types";
 
 /**
@@ -86,22 +86,26 @@ function WebAdminApp() {
     setAuthed(false);
   };
 
-  // Auto-authenticate: first try a stored key, otherwise ask the player
-  // whether this (loopback) client may be trusted with the key automatically,
-  // so the local machine does not have to type it in.
+  // Auto-authenticate only from a previously stored key. The server verifies
+  // the key on every request, so a stale or wrong key simply fails and the
+  // sign-in screen is shown — the key itself is never handed out by the API.
   useEffect(() => {
     (async () => {
-      const stored = getStoredKey();
-      if (stored && (await httpVerifyKey(stored))) {
-        setAuthed(true);
+      try {
+        const authRequired = await httpAuthRequired();
+        const stored = getStoredKey();
+        if (stored && (await httpVerifyKey(stored))) {
+          setAuthed(true);
+        } else if (!authRequired) {
+          // Server runs with auth_mode=none; there is nothing to verify.
+          setAuthed(true);
+        }
+      } catch {
+        // Player unreachable — fall through to the sign-in screen so the
+        // user can retry (it reports reachability errors on submit).
+      } finally {
         setChecking(false);
-        return;
       }
-      const bootstrapped = await httpBootstrapAuth();
-      if (bootstrapped && (await httpVerifyKey(bootstrapped))) {
-        setAuthed(true);
-      }
-      setChecking(false);
     })();
   }, []);
 

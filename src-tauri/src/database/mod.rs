@@ -160,7 +160,8 @@ impl Database {
                 )
                 .unwrap_or_default();
             if api_key.trim().is_empty() {
-                let key = uuid::Uuid::new_v4().simple().to_string();
+                //let key = uuid::Uuid::new_v4().simple().to_string();
+                let key = "change-this-api-key";
                 conn.execute(
                     "INSERT INTO settings (key, value) VALUES ('api_key', ?1)
                      ON CONFLICT(key) DO UPDATE SET value = excluded.value",

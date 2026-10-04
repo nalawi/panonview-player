@@ -141,12 +141,10 @@ This redirects to `http://<device-ip>:8787/ui/`, a full administration console
 served by the embedded HTTP server. It is the recommended way to manage a
 headless/unattended player.
 
-- **On the same machine (loopback):** the console auto-signs in. The player
-  hands the API key to loopback clients via `/api/v1/auth`, so no typing is
-  needed.
-- **From another device:** a login screen asks for the API key. Find it in the
-  desktop app under **Settings → API Key** (copy it), or read it locally from
-  the database (see below).
+- **From any browser, including the same machine:** a login screen asks for
+  the API key. Find it in the desktop app under **Settings → API Key** (copy
+  it), or read it locally from the database (see below). The key is verified
+  against the server on every request and is never handed out by the API.
 
 To read the key from the local database:
 
@@ -286,11 +284,12 @@ GET  /health                     (unauthenticated liveness probe)
 
 ## Security
 
-- API key / Bearer authentication (auto-generated on first boot).
+- API key / Bearer authentication (auto-generated on first boot) — enforced
+  for **all** HTTP clients, loopback included.
 - CIDR-based IP allowlisting (`192.168.1.0/24, 10.10.0.0/16`).
-- `Allow Remote Control` toggle.
-- Loopback requests are always trusted (local admin UI).
-- Secrets are masked in API/UI responses.
+- `Allow Remote Control` toggle (applies to non-loopback clients).
+- Secrets are masked in API/UI responses; the key is never exposed via the
+  public `/api/v1/auth` probe.
 
 Configure under **Settings → HTTP Server**.
 

@@ -6,6 +6,7 @@ import {
   getSettings,
   regenerateApiKey,
   restartHttpServer,
+  setStoredKey,
   updateDevice,
   updateSettings,
 } from "../services/api";
@@ -83,10 +84,17 @@ export function SettingsPage() {
 
   const regen = useMutation({
     mutationFn: () => regenerateApiKey(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["api-key"] });
+    onSuccess: (newKey) => {
+      // The API never hands the key back out (it is only readable via IPC on
+      // desktop or from the local database), so this response is the sole
+      // chance to capture it: persist it for future requests and seed the
+      // query cache so the input shows the new key immediately. Re-fetching
+      // ["api-key"] alone would just re-read the stale localStorage value.
+      setStoredKey(newKey);
+      qc.setQueryData(["api-key"], newKey);
       notify("API key regenerated");
     },
+    onError: (e) => notify(`Regenerate failed: ${String(e)}`),
   });
 
   const restartServer = useMutation({
@@ -106,7 +114,7 @@ export function SettingsPage() {
   };
 
   const authHint =
-    "Send as X-API-Key or Authorization: Bearer KEY. Loopback requests are always trusted.";
+    "Send as X-API-Key or Authorization: Bearer KEY. Every HTTP client, including this machine's browser, must present the key.";
 
   return (
     <div className="space-y-6">

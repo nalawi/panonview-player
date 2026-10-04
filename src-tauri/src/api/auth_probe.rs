@@ -4,15 +4,12 @@ use std::net::SocketAddr;
 
 /// `GET /api/v1/auth` — unauthenticated bootstrap probe used by the browser UI.
 ///
-/// Consumers need to know two things before they can talk to the API:
-///   1. Whether this client is trusted (loopback) and can therefore be given
-///      the API key automatically, so the local machine does not have to type
-///      it in.
-///   2. Whether authentication is required at all.
-///
-/// The key is returned **only** to loopback clients, matching the trust model
-/// already enforced by the auth middleware. Remote clients get just a hint
-/// that a key is required.
+/// It tells the sign-in screen only **whether** credentials are required
+/// (`auth_mode`); it never reveals the API key itself. Handing the real key to
+/// loopback browsers would defeat the login gate, since the web console is
+/// served by the player itself and every browser on the host machine connects
+/// from a loopback address. Users read the key from the desktop app
+/// (Settings → API Key) or from the local database.
 pub async fn auth_probe(
     State(state): State<AppState>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
@@ -25,18 +22,15 @@ pub async fn auth_probe(
         );
 
     let auth_mode = state.db.get_setting_or("auth_mode", "apikey");
-    let auth_required = !auth_mode.eq_ignore_ascii_case("none");
+    let auth_required = !auth_mode.eq_ignore_ascii_case("none")
+        && !state
+            .db
+            .get_setting_or("api_key", "")
+            .trim()
+            .is_empty();
 
-    if is_loopback {
-        Ok(success(serde_json::json!({
-            "loopback": true,
-            "auth_required": auth_required,
-            "api_key": state.db.get_setting_or("api_key", ""),
-        })))
-    } else {
-        Ok(success(serde_json::json!({
-            "loopback": false,
-            "auth_required": auth_required,
-        })))
-    }
+    Ok(success(serde_json::json!({
+        "loopback": is_loopback,
+        "auth_required": auth_required,
+    })))
 }

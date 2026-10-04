@@ -226,24 +226,13 @@ export async function httpVerifyKey(key: string): Promise<boolean> {
 }
 
 /**
- * Ask the player whether this client is trusted (loopback). Loopback clients
- * receive the API key so the local machine auto-logs in without typing it.
- * Returns the key when provided, otherwise null.
+ * Ask the player whether API-key auth is required (`auth_mode`). The probe
+ * never reveals the key itself — the user must paste it from the desktop
+ * app's Settings → API Key. Returns true when credentials are required.
  */
-export async function httpBootstrapAuth(): Promise<string | null> {
-  try {
-    const res = await fetch("/api/v1/auth");
-    if (!res.ok) return null;
-    const json = (await res.json()) as {
-      loopback?: boolean;
-      api_key?: string;
-    };
-    if (json.loopback && json.api_key) {
-      setStoredKey(json.api_key);
-      return json.api_key;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+export async function httpAuthRequired(): Promise<boolean> {
+  const res = await fetch("/api/v1/auth");
+  if (!res.ok) return true;
+  const json = (await res.json()) as { auth_required?: boolean };
+  return json.auth_required !== false;
 }
