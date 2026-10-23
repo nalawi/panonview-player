@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod auth_probe;
+pub mod capture;
 pub mod display;
 pub mod pages;
 pub mod routes;

@@ -38,6 +38,11 @@ serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
+# Screen capture (Preview feature)
+xcap = "0.4"
+image = { version = "0.25", default-features = false, features = ["png"] }
+base64 = "0.22"
+
 # System info + networking helpers
 hostname = "0.4"
 ipnet = "2"

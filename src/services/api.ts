@@ -125,6 +125,10 @@ export const setAdminMode = (enabled: boolean): Promise<unknown> =>
 export const reloadDisplay = (): Promise<unknown> =>
   isTauri() ? ipc.refreshDisplay() : http.httpReload();
 
+/** Capture the currently displayed screen as a base64 PNG data URL. */
+export const captureScreen = (): Promise<string> =>
+  isTauri() ? ipc.captureScreen() : http.httpCaptureScreen();
+
 // ----- Device -----
 
 export const getDevice = (): Promise<Device | null> =>

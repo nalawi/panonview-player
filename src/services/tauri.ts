@@ -95,6 +95,9 @@ export const getDevice = () => invoke<Device | null>("get_device");
 export const updateDevice = (device: UpdateDevice) =>
   invoke<Device | null>("update_device", { device });
 
+/** Capture the currently displayed screen as a base64 PNG data URL. */
+export const captureScreen = () => invoke<string>("capture_screen");
+
 // ----- System -----
 
 export const restartHttpServer = () => invoke<void>("restart_http_server");

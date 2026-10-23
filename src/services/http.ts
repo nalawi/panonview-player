@@ -189,6 +189,31 @@ export const httpGetDevice = () =>
 export const httpUpdateDevice = (device: UpdateDevice) =>
   request<Device>("PUT", "/api/v1/device", device);
 
+// ----- Screen capture -----
+
+/**
+ * Fetch a PNG snapshot of the current screen and return it as a data URL.
+ * The endpoint returns raw image bytes, so this bypasses the JSON `request`
+ * helper and reads the body as a blob.
+ */
+export async function httpCaptureScreen(): Promise<string> {
+  const headers: Record<string, string> = {};
+  const key = getStoredKey();
+  if (key) headers["X-API-Key"] = key;
+
+  const res = await fetch("/api/v1/display/screenshot", { headers });
+  if (!res.ok) {
+    throw new HttpError(res.status, `Screenshot failed: HTTP ${res.status}`);
+  }
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("failed to read screenshot"));
+    reader.readAsDataURL(blob);
+  });
+}
+
 // ----- System -----
 
 export const httpReload = () => request<unknown>("POST", "/api/v1/reload");

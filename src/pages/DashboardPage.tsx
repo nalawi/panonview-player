@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
+  captureScreen,
   displayBack,
   displayForward,
   getDisplayStatus,
@@ -43,6 +44,9 @@ export function DashboardPage() {
   const [overrideUrl, setOverrideUrl] = useState("");
   const [overrideSecs, setOverrideSecs] = useState(300);
   const [msg, setMsg] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   const notify = (m: string) => {
     setMsg(m);
@@ -66,6 +70,19 @@ export function DashboardPage() {
   const doReset = async () => {
     await resetDisplay();
     notify("Display reset to default page");
+  };
+
+  const doPreview = async () => {
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const dataUrl = await captureScreen();
+      setPreview(dataUrl);
+    } catch (e) {
+      setPreviewError(String(e));
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   return (
@@ -115,6 +132,14 @@ export function DashboardPage() {
             className="rounded-md border border-slate-700 px-3 py-2 text-sm text-amber-400 hover:bg-slate-800"
           >
             Reset
+          </button>
+          <button
+            onClick={doPreview}
+            disabled={previewLoading}
+            title="Capture the currently displayed screen and preview it"
+            className="rounded-md border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-40"
+          >
+            {previewLoading ? "Capturing…" : "Preview"}
           </button>
           <button
             onClick={() => displayBack()}
@@ -194,6 +219,41 @@ export function DashboardPage() {
       {msg && (
         <div className="rounded-md bg-emerald-500/15 px-3 py-2 text-sm text-emerald-300">
           {msg}
+        </div>
+      )}
+
+      {previewError && (
+        <div className="rounded-md bg-red-500/15 px-3 py-2 text-sm text-red-300">
+          Preview failed: {previewError}
+        </div>
+      )}
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg border border-slate-700 bg-panel p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-sm font-medium text-slate-300">
+                Screen Preview — currently displayed on player
+              </div>
+              <button
+                onClick={() => setPreview(null)}
+                className="rounded-md border border-slate-700 px-3 py-1 text-sm hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+            <img
+              src={preview}
+              alt="Captured player screen"
+              className="mx-auto max-h-[75vh] w-auto rounded border border-slate-800"
+            />
+          </div>
         </div>
       )}
     </div>

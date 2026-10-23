@@ -1,4 +1,6 @@
-use crate::api::{auth, auth_probe, display, pages, schedules, settings, system, AppState};
+use crate::api::{
+    auth, auth_probe, capture, display, pages, schedules, settings, system, AppState,
+};
 use axum::response::Redirect;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
@@ -25,6 +27,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/v1/display/forward", post(display::forward))
         .route("/api/v1/display/reset", post(display::reset))
         .route("/api/v1/display/override", post(display::override_display))
+        .route("/api/v1/display/screenshot", get(capture::screenshot))
         // Pages
         .route(
             "/api/v1/pages",

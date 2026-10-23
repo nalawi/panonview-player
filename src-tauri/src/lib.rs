@@ -1,4 +1,5 @@
 mod api;
+mod capture;
 mod commands;
 mod database;
 mod display;
@@ -156,6 +157,7 @@ pub fn run() {
             commands::scheduler_status,
             commands::set_scheduler_enabled,
             commands::list_commands,
+            commands::capture_screen,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

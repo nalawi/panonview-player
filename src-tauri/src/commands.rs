@@ -325,6 +325,15 @@ pub fn set_scheduler_enabled(
     Ok(())
 }
 
+/// Capture the currently displayed screen and return a base64 PNG data URL.
+/// Runs on a blocking thread so the async runtime is not stalled.
+#[tauri::command]
+pub async fn capture_screen() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(crate::capture::capture_data_url)
+        .await
+        .map_err(|e| format!("capture task failed: {e}"))?
+}
+
 /// List recent command audit records.
 #[tauri::command]
 pub fn list_commands(
