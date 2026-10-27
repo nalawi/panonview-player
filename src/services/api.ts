@@ -118,6 +118,9 @@ export const regenerateApiKey = (): Promise<string> =>
 export const restartHttpServer = (): Promise<unknown> =>
   isTauri() ? ipc.restartHttpServer() : Promise.resolve(null);
 
+export const getLocalIp = (): Promise<string> =>
+  isTauri() ? ipc.getLocalIp() : Promise.resolve(window.location.hostname);
+
 /** Toggle the desktop window between player (fullscreen) and admin mode. */
 export const setAdminMode = (enabled: boolean): Promise<unknown> =>
   isTauri() ? ipc.setAdminMode(enabled) : Promise.resolve(null);

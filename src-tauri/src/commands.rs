@@ -264,6 +264,7 @@ pub fn update_device(
 // ----- System -----
 
 /// Restart the embedded HTTP server (used after changing port/bind settings).
+/// Menghentikan server lama (melepas port) lalu menjalankan yang baru.
 #[tauri::command]
 pub async fn restart_http_server(app: tauri::AppHandle) -> Result<(), String> {
     let state = app.state::<AppState>().inner().clone();
@@ -274,22 +275,52 @@ pub async fn restart_http_server(app: tauri::AppHandle) -> Result<(), String> {
         .parse()
         .unwrap_or(8787);
     let enabled = state.db.get_setting_or("http_enabled", "true") == "true";
+
+    // Hentikan server lama (jika ada). Lock tidak ditahan melewati await.
+    {
+        let handle_state = app.state::<crate::HttpServerHandle>();
+        let mut guard = handle_state.0.lock().map_err(|e| e.to_string())?;
+        if let Some(old) = guard.take() {
+            old.abort();
+        }
+    }
+
     if !enabled {
         return Err("HTTP server is disabled".to_string());
     }
-    crate::api::start_server(state, bind, port).await
+
+    // Beri waktu singkat agar listener lama benar-benar dilepas.
+    tauri::async_runtime::spawn_blocking(|| {
+        std::thread::sleep(std::time::Duration::from_millis(300));
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+
+    let new_handle = crate::spawn_http_server(state, bind, port);
+    let handle_state = app.state::<crate::HttpServerHandle>();
+    let mut guard = handle_state.0.lock().map_err(|e| e.to_string())?;
+    *guard = Some(new_handle);
+    Ok(())
 }
 
 /// Toggle the main window between admin (windowed) and player (fullscreen) mode.
+/// Hanya berlaku di desktop; di mobile tidak melakukan apa-apa.
 #[tauri::command]
 pub fn set_admin_mode(window: Window, enabled: bool) -> Result<(), String> {
-    window.set_fullscreen(!enabled).map_err(|e| e.to_string())?;
-    window
-        .set_decorations(enabled)
-        .map_err(|e| e.to_string())?;
-    window
-        .set_always_on_top(!enabled)
-        .map_err(|e| e.to_string())?;
+    #[cfg(desktop)]
+    {
+        window.set_fullscreen(!enabled).map_err(|e| e.to_string())?;
+        window
+            .set_decorations(enabled)
+            .map_err(|e| e.to_string())?;
+        window
+            .set_always_on_top(!enabled)
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(not(desktop))]
+    {
+        let _ = (window, enabled);
+    }
     Ok(())
 }
 
@@ -340,4 +371,22 @@ pub fn list_commands(
     db: State<'_, crate::database::Database>,
 ) -> Result<Vec<CommandRecord>, String> {
     db.list_commands(100)
+}
+
+/// Get the system's local IP address (used for the player API URL).
+#[tauri::command]
+pub fn get_local_ip() -> Result<String, String> {
+    use std::net::UdpSocket;
+    // Connect to a public address to determine the local interface IP.
+    // No data is actually sent.
+    match UdpSocket::bind("0.0.0.0:0") {
+        Ok(socket) => match socket.connect("8.8.8.8:80") {
+            Ok(_) => match socket.local_addr() {
+                Ok(addr) => Ok(addr.ip().to_string()),
+                Err(e) => Err(format!("cannot get local addr: {e}")),
+            },
+            Err(e) => Err(format!("cannot connect to test address: {e}")),
+        },
+        Err(e) => Err(format!("cannot bind socket: {e}")),
+    }
 }

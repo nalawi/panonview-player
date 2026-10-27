@@ -108,3 +108,7 @@ export const setAdminMode = (enabled: boolean) =>
 export const schedulerTick = () => invoke<void>("scheduler_tick");
 
 export const schedulerStatus = () => invoke<boolean>("scheduler_status");
+
+// ----- System -----
+
+export const getLocalIp = () => invoke<string>("get_local_ip");
