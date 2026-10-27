@@ -10,10 +10,10 @@ const PlayerLogo = () => {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute bottom-8 right-10 z-10 select-none text-right opacity-20"
+      className="pointer-events-none absolute bottom-8 right-10 z-10 select-none text-right opacity-10"
     >
       {/* Logo — bottom right, thin weight for a refined look */}
-      <div className="text-sm font-light uppercase tracking-[0.35em] text-white sm:text-base">
+      <div className="text-xs font-light uppercase tracking-[0.35em] text-white sm:text-base">
         PanonView <span className="text-white/75">player</span>
       </div>
     </div>

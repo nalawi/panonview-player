@@ -58,24 +58,24 @@ const PlayerIdleScreen = () => {
           No page is configured yet. Add one in the admin UI or send a URL to
           the player API — your content will appear here fullscreen.
         </div>
-        <div className="mt-8 rounded-lg border border-white/15 bg-white/5 px-5 py-3 font-mono text-sm font-light text-slate-300 shadow-inner backdrop-blur-sm">
+        <div className="mt-8 rounded-lg border border-white/15 bg-white/5 px-5 py-3 font-mono text-xm font-light text-slate-300 shadow-inner backdrop-blur-sm">
           {"POST http://" + (deviceIp ?? "<device>") + ":8787/api/v1/display"}
         </div>
       </div>
       <div className="absolute bottom-8 right-10 z-10 text-right">
         <div className="flex items-baseline justify-end gap-2">
-          <span className="text-5xl font-extralight leading-none tracking-tight text-white/90 sm:text-8xl tabular-nums">
+          <span className="text-3xl font-extralight leading-none tracking-tight text-white/90 sm:text-8xl tabular-nums">
             {getTimePart("hour")}
             <span className="text-white/50">:</span>
             {getTimePart("minute")}
           </span>
           {getTimePart("dayPeriod") && (
-            <span className="text-2xl font-light uppercase leading-none tracking-widest text-white/50 sm:text-3xl">
+            <span className="text-xl font-light uppercase leading-none tracking-widest text-white/50 sm:text-3xl">
               {getTimePart("dayPeriod")}
             </span>
           )}
         </div>
-        <div className="mt-3 text-sm font-light uppercase tracking-[0.35em] text-white/55 sm:text-base">
+        <div className="mt-3 text-xm font-light uppercase tracking-[0.35em] text-white/55 sm:text-base">
           {clock.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
         </div>
       </div>

@@ -170,6 +170,41 @@ fn resolve_ui_dir(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
     None
 }
 
+/// Android: tahan layar tetap menyala selama app di foreground
+/// (FLAG_KEEP_SCREEN_ON pada window Activity). Dipanggil via JNI di UI thread.
+#[cfg(target_os = "android")]
+fn keep_screen_on(window: &tauri::WebviewWindow, enable: bool) {
+    let res = window.with_webview(move |webview| {
+        webview.jni_handle().exec(move |env, activity, _webview| {
+            use jni::objects::JValue;
+            // WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            const FLAG_KEEP_SCREEN_ON: i32 = 0x0000_0080;
+
+            let win = match env
+                .call_method(activity, "getWindow", "()Landroid/view/Window;", &[])
+                .and_then(|v| v.l())
+            {
+                Ok(w) => w,
+                Err(e) => {
+                    let _ = env.exception_clear();
+                    eprintln!("[android] getWindow failed: {e}");
+                    return;
+                }
+            };
+            let method = if enable { "addFlags" } else { "clearFlags" };
+            if let Err(e) = env.call_method(&win, method, "(I)V", &[JValue::Int(FLAG_KEEP_SCREEN_ON)]) {
+                let _ = env.exception_clear();
+                eprintln!("[android] {method} failed: {e}");
+            } else {
+                println!("[android] keep screen on = {enable}");
+            }
+        });
+    });
+    if let Err(e) = res {
+        eprintln!("[android] with_webview failed: {e}");
+    }
+}
+
 /// Configure the main window for kiosk/player mode.
 ///
 /// Window-control methods only exist on desktop targets (`#[cfg(desktop)]`).
@@ -220,6 +255,14 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 let startup_mode = db.get_setting_or("startup_mode", "player");
                 apply_window_mode(&window, startup_mode != "admin");
+
+                // Android: jaga layar tetap menyala (setting `keep_screen_on`, default true).
+                #[cfg(target_os = "android")]
+                {
+                    if db.get_setting_or("keep_screen_on", "true") == "true" {
+                        keep_screen_on(&window, true);
+                    }
+                }
             }
 
             // 5. Start the embedded HTTP server (unless disabled).

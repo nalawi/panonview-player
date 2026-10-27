@@ -54,6 +54,8 @@ xcap = "0.4"
 # Android only: embed hasil build frontend (../dist) ke dalam binary
 [target.'cfg(target_os = "android")'.dependencies]
 rust-embed = { version = "8", features = ["debug-embed"] }
+# JNI untuk memanggil Android API (keep screen on); samakan dengan versi jni milik tauri
+jni = "0.21"
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]
