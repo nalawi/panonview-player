@@ -252,6 +252,8 @@ impl DisplayController {
     /// Manually set the displayed URL. Switches to manual mode.
     pub fn set_url(&self, url: &str) -> Result<(), String> {
         self.db.log_command("set_url", Some(url)).ok();
+        // The operator's explicit choice supersedes any pending snapshot.
+        scheduler::clear_pre_schedule(&self.db);
         self.apply(url, MODE_MANUAL, None, None);
         Ok(())
     }
@@ -263,6 +265,7 @@ impl DisplayController {
             .get_page(page_id)?
             .ok_or_else(|| format!("page {} not found", page_id))?;
         self.db.log_command("show_page", Some(&page_id.to_string())).ok();
+        scheduler::clear_pre_schedule(&self.db);
         self.apply(&page.url, MODE_MANUAL, Some(page.id), None);
         Ok(())
     }
@@ -329,6 +332,7 @@ impl DisplayController {
         self.db
             .log_command("override", Some(&format!("{}|{}", url, duration)))
             .ok();
+        scheduler::clear_pre_schedule(&self.db);
         self.apply(url, MODE_OVERRIDE, None, Some(expires.to_rfc3339()));
         Ok(())
     }
@@ -340,6 +344,7 @@ impl DisplayController {
     /// manual URL, an override, or an active schedule provides content again.
     pub fn reset(&self) -> Result<(), String> {
         self.db.log_command("reset", None).ok();
+        scheduler::clear_pre_schedule(&self.db);
         let state = DisplayState {
             id: 1,
             current_page_id: None,
@@ -397,11 +402,66 @@ impl DisplayController {
 
     /// One scheduler evaluation.
     pub fn tick(&self) {
+        use scheduler::TargetSource;
+
         let state = self.db.get_display_state().unwrap_or_default();
+        // Are we currently showing content produced by a schedule/rotation?
+        // `compute_target` maps both to `MODE_SCHEDULER`.
+        let was_scheduled = state.mode == MODE_SCHEDULER;
+
         let target = match scheduler::compute_target(&self.db) {
             Some(t) => t,
-            None => return,
+            None => {
+                // No target. If we were showing scheduled content, the window
+                // has closed and there is nothing to restore (the snapshot
+                // recorded standby): clear the display so the player shows its
+                // default standby screen instead of the just-ended page.
+                if was_scheduled {
+                    scheduler::clear_pre_schedule(&self.db);
+                    let standby = DisplayState {
+                        id: 1,
+                        current_page_id: None,
+                        current_url: None,
+                        mode: MODE_IDLE.to_string(),
+                        started_at: Some(now()),
+                        expires_at: None,
+                    };
+                    let _ = self.db.set_display_state(&standby);
+                    self.emit_navigate("", MODE_IDLE, None);
+                    self.emit_status();
+                }
+                return;
+            }
         };
+
+        let is_schedule = matches!(
+            target.source,
+            TargetSource::Schedule | TargetSource::Rotation
+        );
+
+        // Entering a schedule window: remember what was on screen so it can be
+        // restored once the window closes (this is what stops the scheduled
+        // page from lingering past `end_time`).
+        if is_schedule && !was_scheduled {
+            scheduler::save_pre_schedule(
+                &self.db,
+                state.current_url.as_deref().unwrap_or(""),
+                state.current_page_id,
+                &state.mode,
+            );
+        }
+        // Record the URL served by the schedule so the offline "last
+        // successful page" fallback does not replay it after the window ends.
+        if is_schedule {
+            let _ = self
+                .db
+                .set_setting(scheduler::LAST_SCHEDULE_SETTING, &target.url);
+        }
+        // Leaving a schedule window (restoring previous/default content): the
+        // snapshot has served its purpose.
+        if was_scheduled && !is_schedule {
+            scheduler::clear_pre_schedule(&self.db);
+        }
 
         let same_url = state.current_url.as_deref() == Some(target.url.as_str());
         let same_mode = state.mode == target.mode;
@@ -479,7 +539,12 @@ impl DisplayController {
                 .map(|exp| exp.with_timezone(&chrono::Utc) <= chrono::Utc::now())
                 .unwrap_or(false);
 
-        if !override_expired {
+        // A persisted `MODE_SCHEDULER` URL may be from a schedule window that
+        // has since closed; do not blindly restore it. Let the scheduler decide
+        // so we return to the previous page / default page / standby instead.
+        let ended_schedule = state.mode == MODE_SCHEDULER;
+
+        if !override_expired && !ended_schedule {
             if let Some(url) = state.current_url {
                 if !url.is_empty() {
                     return Some(url);

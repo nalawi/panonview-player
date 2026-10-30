@@ -7,7 +7,27 @@ use crate::database::{now, Database};
 use crate::models::*;
 use chrono::{Duration, Utc};
 
-use super::scheduler::compute_target;
+use super::scheduler::{
+    clear_pre_schedule, compute_target, save_pre_schedule, LAST_SCHEDULE_SETTING,
+};
+
+/// A schedule window that is never active: `start == end` makes the half-open
+/// range `[start, end)` empty at every instant of the day.
+fn never_active_schedule(db: &Database, page_id: i64) {
+    db.create_schedule(&NewSchedule {
+        page_id,
+        schedule_type: SCHEDULE_TIME.to_string(),
+        start_date: None,
+        end_date: None,
+        start_time: Some("00:00".to_string()),
+        end_time: Some("00:00".to_string()),
+        days: None,
+        priority: None,
+        enabled: true,
+        sequence: None,
+    })
+    .unwrap();
+}
 
 fn page(db: &Database, name: &str, url: &str, duration: i64) -> i64 {
     db.create_page(&NewPage {
@@ -182,6 +202,85 @@ fn idle_reset_shows_no_content() {
     // No target => the player keeps showing the default standby screen
     // instead of falling back to the first enabled page.
     assert!(compute_target(&db).is_none());
+}
+
+#[test]
+fn ended_time_schedule_restores_previous_page() {
+    // Reproduces the reported bug: a page scheduled 12:10-12:12 must stop
+    // showing once the window closes; the display returns to the page that was
+    // showing before the schedule.
+    let db = Database::in_memory().unwrap();
+    let previous = page(&db, "Previous", "https://example.com/previous", 60);
+    let scheduled = page(&db, "Scheduled", "https://example.com/scheduled", 60);
+    never_active_schedule(&db, scheduled);
+
+    // While the window was open the controller snapshotted the previous page,
+    // the state is `scheduler`, and the scheduled page is also the "last
+    // successful page" (the frontend reported it as loaded).
+    save_pre_schedule(
+        &db,
+        "https://example.com/previous",
+        Some(previous),
+        MODE_MANUAL,
+    );
+    let _ = db.set_setting(LAST_SCHEDULE_SETTING, "https://example.com/scheduled");
+    let _ = db.record_successful_page("https://example.com/scheduled");
+    db.set_display_state(&DisplayState {
+        id: 1,
+        current_page_id: Some(scheduled),
+        current_url: Some("https://example.com/scheduled".to_string()),
+        mode: MODE_SCHEDULER.to_string(),
+        started_at: Some(now()),
+        expires_at: None,
+    })
+    .unwrap();
+
+    let target = compute_target(&db).unwrap();
+    assert_eq!(target.url, "https://example.com/previous");
+    assert_eq!(target.page_id, Some(previous));
+    assert_ne!(
+        target.url, "https://example.com/scheduled",
+        "the scheduled page must not linger after end_time"
+    );
+}
+
+#[test]
+fn ended_time_schedule_returns_to_standby_when_nothing_before() {
+    // Nothing was displayed before the window (standby screen): when it ends
+    // the display must clear again rather than keep showing the scheduled page.
+    let db = Database::in_memory().unwrap();
+    let scheduled = page(&db, "Scheduled", "https://example.com/scheduled", 60);
+    never_active_schedule(&db, scheduled);
+
+    save_pre_schedule(&db, "", None, MODE_IDLE);
+    let _ = db.set_setting(LAST_SCHEDULE_SETTING, "https://example.com/scheduled");
+    let _ = db.record_successful_page("https://example.com/scheduled");
+
+    assert!(
+        compute_target(&db).is_none(),
+        "no content should remain once a window that started from standby ends"
+    );
+}
+
+#[test]
+fn cleared_snapshot_does_not_replay_ended_schedule_page() {
+    // Without a snapshot the offline fallback must not resurrect the page
+    // served by the schedule window that just ended.
+    let db = Database::in_memory().unwrap();
+    let other = page(&db, "Other", "https://example.com/other", 60);
+    let scheduled = page(&db, "Scheduled", "https://example.com/scheduled", 60);
+    never_active_schedule(&db, scheduled);
+
+    clear_pre_schedule(&db);
+    let _ = db.set_setting(LAST_SCHEDULE_SETTING, "https://example.com/scheduled");
+    let _ = db.record_successful_page("https://example.com/scheduled");
+
+    let target = compute_target(&db).unwrap();
+    // The ended schedule's URL is rejected; the display falls back to the
+    // regular content (the seeded first enabled page here).
+    assert_ne!(target.url, "https://example.com/scheduled");
+    assert_ne!(target.page_id, Some(scheduled));
+    let _ = other;
 }
 
 #[test]

@@ -2,6 +2,37 @@ use crate::database::Database;
 use crate::models::*;
 use chrono::{DateTime, Datelike, Duration, Local, NaiveTime, Timelike, Utc, Weekday};
 
+/// Settings key holding the page that was on screen before a schedule took
+/// over, so the display can return to it once the schedule window closes.
+pub const PRE_SCHEDULE_SETTING: &str = "pre_schedule_display";
+/// Settings key holding the operator-configured standby ("player default")
+/// page. Empty means "show the standby screen".
+pub const DEFAULT_PAGE_SETTING: &str = "default_page_id";
+/// Settings key holding the URL of the page served by the schedule window that
+/// most recently took over. The offline fallback must never replay it once the
+/// window has closed.
+pub const LAST_SCHEDULE_SETTING: &str = "last_schedule_url";
+
+/// Why the scheduler chose a target. The controller uses this to decide when
+/// to snapshot the pre-schedule page and when to drop the snapshot again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TargetSource {
+    /// Temporary operator override.
+    Override,
+    /// An active time-based schedule.
+    Schedule,
+    /// The rotation cycle.
+    Rotation,
+    /// Operator-set URL / page (manual mode).
+    Manual,
+    /// The page that was on screen before the schedule started.
+    Restore,
+    /// The operator-configured default page.
+    Default,
+    /// Offline / bootstrap fallbacks.
+    Fallback,
+}
+
 /// The desired display target computed by the scheduler.
 #[derive(Debug, Clone)]
 pub struct Target {
@@ -10,6 +41,92 @@ pub struct Target {
     pub mode: String,
     /// When set, the target is a temporary override that should expire.
     pub expires_at: Option<String>,
+    /// Why this target was chosen.
+    pub source: TargetSource,
+}
+
+/// Snapshot of what was on screen before a schedule took over.
+///
+/// `standby` is true when nothing was displayed (the player standby screen).
+/// In that case the display must be cleared again once the window closes,
+/// instead of resurrecting the just-ended (or any other) page.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PreSchedule {
+    pub url: String,
+    pub page_id: Option<i64>,
+    pub mode: String,
+    pub standby: bool,
+}
+
+/// Persist what is about to be replaced by a schedule. `url` may be empty to
+/// record that the standby screen was showing, so the display returns to
+/// standby once the schedule window closes.
+pub fn save_pre_schedule(db: &Database, url: &str, page_id: Option<i64>, mode: &str) {
+    let payload = serde_json::json!({
+        "standby": url.is_empty(),
+        "url": url,
+        "page_id": page_id,
+        "mode": mode,
+    })
+    .to_string();
+    let _ = db.set_setting(PRE_SCHEDULE_SETTING, &payload);
+}
+
+/// Read the snapshot without consuming it (safe to call from pure code paths).
+pub fn peek_pre_schedule(db: &Database) -> Option<PreSchedule> {
+    let raw = db.get_setting(PRE_SCHEDULE_SETTING).ok().flatten()?;
+    if raw.trim().is_empty() {
+        return None;
+    }
+    let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let standby = value
+        .get("standby")
+        .and_then(|s| s.as_bool())
+        .unwrap_or(false);
+    let url = value
+        .get("url")
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string();
+    // Only meaningful when it recorded a real page or an explicit standby.
+    if url.is_empty() && !standby {
+        return None;
+    }
+    Some(PreSchedule {
+        url,
+        page_id: value.get("page_id").and_then(|p| p.as_i64()),
+        mode: value
+            .get("mode")
+            .and_then(|m| m.as_str())
+            .unwrap_or(MODE_MANUAL)
+            .to_string(),
+        standby,
+    })
+}
+
+/// Forget the snapshot once it has been restored (or superseded).
+pub fn clear_pre_schedule(db: &Database) {
+    let _ = db.set_setting(PRE_SCHEDULE_SETTING, "");
+}
+
+/// Resolve the operator-configured default page, if it still exists and is
+/// enabled. An empty/invalid setting means "no default page".
+fn default_page_target(db: &Database) -> Option<Target> {
+    let raw = db.get_setting(DEFAULT_PAGE_SETTING).ok().flatten()?;
+    let id: i64 = raw.trim().parse().ok()?;
+    let page = db.get_page(id).ok().flatten()?;
+    if !page.enabled {
+        return None;
+    }
+    Some(Target {
+        page_id: Some(page.id),
+        url: page.url,
+        // Restore in manual mode so the choice survives subsequent scheduler
+        // ticks instead of being recomputed (and possibly cleared) each time.
+        mode: MODE_MANUAL.to_string(),
+        expires_at: None,
+        source: TargetSource::Default,
+    })
 }
 
 /// Parse "HH:MM" or "HH:MM:SS" into a NaiveTime.
@@ -151,6 +268,7 @@ fn rotation_target(db: &Database, schedules: &[Schedule]) -> Option<Target> {
                 url: p.url.clone(),
                 mode: MODE_SCHEDULER.to_string(),
                 expires_at: None,
+                source: TargetSource::Rotation,
             });
         }
     }
@@ -161,6 +279,7 @@ fn rotation_target(db: &Database, schedules: &[Schedule]) -> Option<Target> {
         url: p.url.clone(),
         mode: MODE_SCHEDULER.to_string(),
         expires_at: None,
+        source: TargetSource::Rotation,
     })
 }
 
@@ -172,7 +291,9 @@ fn rotation_target(db: &Database, schedules: &[Schedule]) -> Option<Target> {
 ///   3. Rotation schedule
 ///   4. Idle (display reset): no content until something provides it
 ///   5. Manual mode: keep the operator-chosen URL when no schedule is active
-///   6. Last successful page (offline fallback), else first enabled page
+///   6. Restore the page that was on screen before the schedule started
+///   7. Operator-configured default page
+///   8. Last successful page (offline fallback), else first enabled page
 pub fn compute_target(db: &Database) -> Option<Target> {
     let now_utc = Utc::now();
     let now_local = Local::now();
@@ -188,6 +309,7 @@ pub fn compute_target(db: &Database) -> Option<Target> {
                         url: url.clone(),
                         mode: MODE_OVERRIDE.to_string(),
                         expires_at: state.expires_at.clone(),
+                        source: TargetSource::Override,
                     });
                 }
             } else {
@@ -197,6 +319,7 @@ pub fn compute_target(db: &Database) -> Option<Target> {
                     url: url.clone(),
                     mode: MODE_OVERRIDE.to_string(),
                     expires_at: state.expires_at.clone(),
+                    source: TargetSource::Override,
                 });
             }
         }
@@ -220,6 +343,7 @@ pub fn compute_target(db: &Database) -> Option<Target> {
                         url: p.url,
                         mode: MODE_SCHEDULER.to_string(),
                         expires_at: None,
+                        source: TargetSource::Schedule,
                     });
                 }
             }
@@ -252,23 +376,58 @@ pub fn compute_target(db: &Database) -> Option<Target> {
                     url: url.clone(),
                     mode: MODE_MANUAL.to_string(),
                     expires_at: None,
+                    source: TargetSource::Manual,
                 });
             }
         }
     }
 
-    // 6. Offline fallback: last successful page.
-    let (last_url, _) = db.last_successful();
-    if let Some(url) = last_url {
+    // 6. Restore the page that was on screen before the schedule started.
+    // This is what makes an expired time window fall back to the previous
+    // content instead of replaying the just-ended scheduled page (which is
+    // also the "last successful page" the controller persisted).
+    if let Some(pre) = peek_pre_schedule(db) {
+        if pre.standby || pre.url.is_empty() {
+            // Nothing was displayed before the schedule: return to standby
+            // rather than showing the just-ended (or any other) page.
+            return None;
+        }
         return Some(Target {
-            page_id: None,
-            url,
-            mode: MODE_SCHEDULER.to_string(),
+            page_id: pre.page_id,
+            url: pre.url,
+            mode: pre.mode,
             expires_at: None,
+            source: TargetSource::Restore,
         });
     }
 
-    // 5. First enabled page.
+    // 7. Operator-configured default page.
+    if let Some(t) = default_page_target(db) {
+        return Some(t);
+    }
+
+    // 8. Offline fallback: last successful page — but never the page from a
+    // schedule window that just ended, otherwise the display would keep the
+    // scheduled page instead of returning to the previous/default content.
+    let (last_url, _) = db.last_successful();
+    let last_scheduled_url = db
+        .get_setting(LAST_SCHEDULE_SETTING)
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+    if let Some(url) = last_url {
+        if !url.is_empty() && url != last_scheduled_url {
+            return Some(Target {
+                page_id: None,
+                url,
+                mode: MODE_SCHEDULER.to_string(),
+                expires_at: None,
+                source: TargetSource::Fallback,
+            });
+        }
+    }
+
+    // 8b. First enabled page.
     if let Ok(pages) = db.list_pages() {
         if let Some(p) = pages.into_iter().find(|p| p.enabled) {
             return Some(Target {
@@ -276,6 +435,7 @@ pub fn compute_target(db: &Database) -> Option<Target> {
                 url: p.url,
                 mode: MODE_SCHEDULER.to_string(),
                 expires_at: None,
+                source: TargetSource::Fallback,
             });
         }
     }
