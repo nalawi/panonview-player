@@ -1,0 +1,1414 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>PanonView Player — Digital Signage Agent Datasheet</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            * {
+                box-sizing: border-box;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+                color: #1B2A3D;
+                font-size: 9pt;
+                line-height: 1.45;
+                background: #fff;
+            }
+            .mono {
+                font-family: Menlo, "SF Mono", Consolas, monospace;
+            }
+            .page {
+                position: relative;
+                width: 210mm;
+                height: 297mm;
+                overflow: hidden;
+                page-break-after: always;
+                background: #fff;
+            }
+            .page:last-child {
+                page-break-after: auto;
+            }
+            .pad {
+                padding: 15mm 16mm 0;
+            }
+
+            .rh {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                padding-bottom: 4mm;
+                border-bottom: 0.35mm solid #E2EAF3;
+            }
+            .rh .brand-mark {
+                height: 7.6mm;
+                width: auto;
+                display: block;
+                color: #1B2A3D;
+            }
+            .rh .rh-r {
+                text-align: right;
+                font-size: 6.6pt;
+                letter-spacing: 1.6px;
+                text-transform: uppercase;
+                color: #8CA0B8;
+                line-height: 1.6;
+            }
+            .rh .rh-r b {
+                color: #1B5FA8;
+                letter-spacing: 1.6px;
+            }
+
+            .rf {
+                position: absolute;
+                left: 16mm;
+                right: 16mm;
+                bottom: 9mm;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 6.6pt;
+                letter-spacing: 0.9px;
+                text-transform: uppercase;
+                color: #9AAEC6;
+                padding-top: 3mm;
+                border-top: 0.3mm solid #EDF2F8;
+            }
+            .rf .pn {
+                font-weight: 700;
+                color: #1B5FA8;
+                letter-spacing: 1px;
+            }
+
+            h2 {
+                font-size: 19pt;
+                line-height: 1.1;
+                margin: 9mm 0 0;
+                letter-spacing: -0.3px;
+                color: #0A1626;
+                font-weight: 700;
+            }
+            h2 .num {
+                color: #2E86D8;
+                font-weight: 700;
+                margin-right: 3mm;
+                font-size: 10pt;
+                vertical-align: 3pt;
+                letter-spacing: 0;
+            }
+            .lead {
+                font-size: 9.6pt;
+                color: #4B6079;
+                line-height: 1.6;
+                margin: 3.5mm 0 0;
+                max-width: 168mm;
+            }
+            h3 {
+                font-size: 8pt;
+                text-transform: uppercase;
+                letter-spacing: 2.2px;
+                color: #1B5FA8;
+                font-weight: 700;
+                margin: 8mm 0 3mm;
+                display: flex;
+                align-items: center;
+                gap: 3mm;
+            }
+            h3::after {
+                content: "";
+                flex: 1;
+                height: 0.3mm;
+                background: linear-gradient(90deg,#D7E4F1,transparent);
+            }
+
+            table.t {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 8pt;
+            }
+            table.t thead th {
+                text-align: left;
+                padding: 2.2mm 2.6mm;
+                background: #0F2A45;
+                color: #fff;
+                font-size: 6.8pt;
+                text-transform: uppercase;
+                letter-spacing: 1.3px;
+                font-weight: 600;
+            }
+            table.t thead th:first-child {
+                border-top-left-radius: 1mm;
+            }
+            table.t thead th:last-child {
+                border-top-right-radius: 1mm;
+            }
+            table.t td {
+                padding: 2.1mm 2.6mm;
+                border-bottom: 0.25mm solid #E7EEF6;
+                vertical-align: top;
+                color: #33475F;
+            }
+            table.t tbody tr:nth-child(even) td {
+                background: #F7FAFD;
+            }
+            table.t td:first-child {
+                color: #0A1626;
+                font-weight: 600;
+                width: 34%;
+            }
+            table.t.dense td {
+                padding: 1.6mm 2.4mm;
+            }
+            table.t.dense td:first-child {
+                width: 26%;
+            }
+            table.t.mono td:first-child {
+                font-family: Menlo, "SF Mono", monospace;
+                font-size: 7.2pt;
+                font-weight: 500;
+            }
+            table.t.api td:first-child {
+                width: 20%;
+            }
+            table.t.api td:nth-child(2) {
+                font-family: Menlo, "SF Mono", monospace;
+                font-size: 6.9pt;
+                width: 40%;
+            }
+
+            .grid2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 4mm;
+            }
+            .grid3 {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3.5mm;
+            }
+            .grid4 {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 3mm;
+            }
+            .card {
+                border: 0.3mm solid #E2EAF3;
+                border-radius: 1.6mm;
+                padding: 3.6mm 4mm;
+                background: #FBFDFF;
+                position: relative;
+            }
+            .card .idx {
+                font-size: 7pt;
+                font-weight: 700;
+                color: #2E86D8;
+                letter-spacing: 1px;
+            }
+            .card .ct {
+                font-size: 9.4pt;
+                font-weight: 600;
+                color: #0A1626;
+                margin: 0.6mm 0 1.4mm;
+                letter-spacing: -0.1px;
+            }
+            .card .cb {
+                font-size: 7.8pt;
+                color: #55708C;
+                line-height: 1.5;
+            }
+
+            .note {
+                margin-top: 4mm;
+                padding: 3mm 3.6mm;
+                border-radius: 1.2mm;
+                background: #F2F8FE;
+                border-left: 0.8mm solid #2E86D8;
+                font-size: 7.6pt;
+                color: #3B5570;
+                line-height: 1.55;
+            }
+            .note b {
+                color: #0A1626;
+            }
+            .split {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6mm;
+            }
+
+            .cover-top {
+                height: 176mm;
+                position: relative;
+                overflow: hidden;
+                background: radial-gradient(90mm 70mm at 88% 8%, rgba(46,134,216,.32), transparent 65%), radial-gradient(70mm 60mm at 8% 92%, rgba(83, 175, 234, 0.18), transparent 70%), linear-gradient(160deg, #071321 0%, #0A1E33 45%, #0C2742 100%);
+                padding: 15mm 16mm;
+                color: #fff;
+            }
+            .cover-top .gridlines {
+                position: absolute;
+                inset: 0;
+                background-image: linear-gradient(rgba(120,170,220,.085) 0.2mm, transparent 0.2mm), linear-gradient(90deg, rgba(120, 170, 220, 0.085) 0.2mm, transparent 0.2mm);
+                background-size: 10mm 10mm;
+                mask-image: linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 55%, rgba(0,0,0,.85));
+                -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 55%, rgba(0,0,0,.85));
+                pointer-events: none;
+            }
+            .cover-top .glow {
+                position: absolute;
+                width: 120mm;
+                height: 120mm;
+                right: -35mm;
+                top: 58mm;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(46,134,216,.22), transparent 62%);
+            }
+            .cover-brandrow {
+                position: relative;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .cover-brandrow .brand-mark {
+                height: 11mm;
+                width: auto;
+                display: block;
+                color: #fff;
+            }
+            .doclabel {
+                text-align: right;
+                font-size: 6.6pt;
+                letter-spacing: 2.6px;
+                text-transform: uppercase;
+                color: #7FA6CC;
+                line-height: 1.7;
+            }
+            .doclabel b {
+                color: #fff;
+                letter-spacing: 2.6px;
+            }
+            .cover-copy {
+                position: relative;
+                width: 82mm;
+                margin-top: 24mm;
+                z-index: 9;
+            }
+            .kicker {
+                font-size: 6.8pt;
+                letter-spacing: 3.4px;
+                text-transform: uppercase;
+                color: #65A6E2;
+                font-weight: 600;
+            }
+            .cover-copy h1 {
+                font-size: 40pt;
+                line-height: 1.10;
+                margin: 4.5mm 0 0;
+                letter-spacing: -1.6px;
+                font-weight: 700;
+                color: #fff;
+            }
+            .cover-rule {
+                width: 22mm;
+                height: 0.7mm;
+                background: linear-gradient(90deg,#53AFEA,#2E86D8);
+                margin: 5.5mm 0;
+            }
+            .cover-sub {
+                font-size: 11.4pt;
+                line-height: 1.5;
+                color: #CBDFF2;
+                font-weight: 400;
+                letter-spacing: -0.1px;
+            }
+            .cover-desc {
+                font-size: 8.2pt;
+                line-height: 1.62;
+                color: #8FB0CE;
+                margin-top: 4mm;
+            }
+
+            .cover-shot {
+                position: absolute;
+                right: 16mm;
+                top: 50mm;
+                width: 92mm;
+                border-radius: 2mm;
+                overflow: hidden;
+                border: 0.35mm solid rgba(140, 185, 230, 0.42);
+                box-shadow: 0 6mm 14mm rgba(0, 0, 0, 0.45);
+                background: #08131F;
+            }
+            .cover-shot .bar {
+                height: 4.6mm;
+                background: #0C1E2E;
+                display: flex;
+                align-items: center;
+                gap: 1.2mm;
+                padding: 0 2.4mm;
+                border-bottom: 0.3mm solid rgba(140, 185, 230, 0.2);
+            }
+            .cover-shot .bar i {
+                width: 1.5mm;
+                height: 1.5mm;
+                border-radius: 50%;
+                background: #2E4A66;
+                display: block;
+            }
+            .cover-shot .bar i:first-child {
+                background: #3E6B96;
+            }
+            .cover-shot .bar .t {
+                margin-left: auto;
+                font-size: 5.4pt;
+                letter-spacing: 1.4px;
+                color: #5E82A4;
+                text-transform: uppercase;
+            }
+            .screen-mock {
+                height: 50mm;
+                background: radial-gradient(60mm 40mm at 80% 10%, rgba(43,163,255,.28), transparent 70%), linear-gradient(145deg, #0B1B2A, #102F4A);
+                padding: 7mm;
+                position: relative;
+            }
+            .screen-mock .mock-brand {
+                font-size: 12pt;
+                font-weight: 700;
+                letter-spacing: -0.3px;
+                color: #fff;
+            }
+            .screen-mock .mock-brand span {
+                color: #2BA3FF;
+            }
+            .screen-mock .mock-url {
+                margin-top: 2mm;
+                font-family: Menlo, monospace;
+                font-size: 5.8pt;
+                color: #8FC0EA;
+            }
+            .screen-mock .mock-cards {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2mm;
+                margin-top: 6mm;
+            }
+            .screen-mock .mock-cards i {
+                display: block;
+                height: 13mm;
+                border-radius: 1mm;
+                background: linear-gradient(160deg,rgba(83,175,234,.28),rgba(46,134,216,.08));
+                border: 0.25mm solid rgba(140, 185, 230, 0.25);
+            }
+            .screen-mock .mock-badge {
+                position: absolute;
+                right: 7mm;
+                bottom: 6mm;
+                font-size: 5.4pt;
+                letter-spacing: 1.4px;
+                text-transform: uppercase;
+                color: #6E92B4;
+            }
+            .cover-shot .cap {
+                display: flex;
+                justify-content: space-between;
+                padding: 2mm 2.6mm;
+                background: #0C1E2E;
+                font-size: 5.8pt;
+                letter-spacing: 1.2px;
+                text-transform: uppercase;
+                color: #6E92B4;
+            }
+            .cover-shot .cap b {
+                color: #8FC0EA;
+                font-weight: 600;
+            }
+
+            .cover-stats {
+                position: absolute;
+                left: 16mm;
+                right: 16mm;
+                bottom: 12mm;
+            }
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                border-top: 0.3mm solid rgba(255, 255, 255, 0.14);
+            }
+            .stat {
+                padding: 10mm 5mm 0 0;
+            }
+            .stat .sv {
+                font-size: 20pt;
+                font-weight: 700;
+                color: #fff;
+                letter-spacing: -0.6px;
+                line-height: 1;
+            }
+            .stat .sv span {
+                font-size: 10pt;
+                color: #6FA8E0;
+                font-weight: 600;
+            }
+            .stat .sl {
+                font-size: 6.4pt;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                color: #7E9CBE;
+                margin-top: 1.8mm;
+            }
+            .cover-bottom {
+                padding: 65mm 16mm 0;
+            }
+            .pillars {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 3.4mm;
+            }
+            .pillar {
+                border-left: 0.7mm solid #2E86D8;
+                padding: 0 0 0 3.4mm;
+            }
+            .pillar .pn0 {
+                font-size: 6.4pt;
+                letter-spacing: 1.8px;
+                color: #8CA0B8;
+                text-transform: uppercase;
+            }
+            .pillar .pt {
+                font-size: 10.4pt;
+                font-weight: 700;
+                color: #0A1626;
+                margin: 1mm 0 1.4mm;
+                letter-spacing: -0.2px;
+            }
+            .pillar .pb {
+                font-size: 7.4pt;
+                color: #5B7691;
+                line-height: 1.5;
+            }
+
+            .arch {
+                margin-top: 4mm;
+            }
+            .arch-layer {
+                border-radius: 1.4mm;
+                padding: 3mm 3.6mm;
+                background: #F3F8FD;
+                border: 0.3mm solid #DBE8F5;
+                border-left: 1mm solid #2E86D8;
+                font-size: 7.6pt;
+                color: #33475F;
+                line-height: 1.5;
+            }
+            .arch-layer .lt {
+                font-size: 8pt;
+                font-weight: 700;
+                color: #0A1626;
+                letter-spacing: 0.1px;
+            }
+            .arch-layer .lt em {
+                font-style: normal;
+                font-weight: 500;
+                color: #6B88A4;
+                font-size: 7pt;
+                margin-left: 2mm;
+                letter-spacing: 0.4px;
+            }
+            .arch-layer.dark {
+                background: #0E2438;
+                border-color: #0E2438;
+                border-left-color: #53AFEA;
+                color: #9FBEDA;
+            }
+            .arch-layer.dark .lt {
+                color: #fff;
+            }
+            .arch-layer.dark .lt em {
+                color: #6B92B4;
+            }
+            .arch-layer.ext {
+                background: #EDF6FE;
+                border-left-color: #163C5E;
+            }
+            .arch-arrow {
+                text-align: center;
+                font-size: 6pt;
+                color: #A9BED4;
+                line-height: 1;
+                padding: 1.4mm 0;
+                letter-spacing: 2px;
+            }
+            .arch-cols {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2.4mm;
+                margin-top: 2.4mm;
+            }
+            .arch-box {
+                background: rgba(255, 255, 255, 0.05);
+                border: 0.3mm solid rgba(140, 185, 230, 0.28);
+                border-radius: 1mm;
+                padding: 2.2mm 2.4mm;
+            }
+            .arch-box .bt {
+                color: #fff;
+                font-size: 8pt;
+                font-weight: 600;
+            }
+            .arch-box .bp {
+                color: #6B92B4;
+                font-size: 6.6pt;
+                letter-spacing: 0.5px;
+                margin-top: 0.6mm;
+                font-family: Menlo, monospace;
+            }
+            .arch-box .bd {
+                color: #8FB0CE;
+                font-size: 6.8pt;
+                margin-top: 1.2mm;
+                line-height: 1.45;
+            }
+            .arch-row2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 3mm;
+            }
+
+            pre.code {
+                margin: 0;
+                background: #0E2438;
+                color: #B9D6EF;
+                border-radius: 1.4mm;
+                padding: 3.4mm 4mm;
+                font-size: 5.0pt;
+                line-height: 1.7;
+                font-family: Menlo, "SF Mono", monospace;
+                letter-spacing: 0;
+            }
+            pre.code .c {
+                color: #5B82A6;
+            }
+            pre.code .k {
+                color: #7EC8F0;
+            }
+            .closing {
+                margin-top: 7mm;
+                border-radius: 2mm;
+                padding: 6mm 7mm;
+                background: linear-gradient(135deg,#0A1E33,#0F3352);
+                color: #BBD3E9;
+            }
+            .closing .brand-mark {
+                height: 7.5mm;
+                width: auto;
+                display: block;
+                margin-bottom: 3.4mm;
+                color: #fff;
+            }
+            .closing .ct2 {
+                font-size: 11pt;
+                font-weight: 600;
+                color: #fff;
+                letter-spacing: -0.2px;
+            }
+            .closing .cb2 {
+                font-size: 7.6pt;
+                line-height: 1.6;
+                margin-top: 1.6mm;
+                color: #93B2CE;
+                max-width: 150mm;
+            }
+            .meta-row {
+                display: flex;
+                gap: 8mm;
+                margin-top: 4mm;
+                font-size: 6.6pt;
+                letter-spacing: 1.1px;
+                text-transform: uppercase;
+                color: #7FA0BE;
+            }
+            .meta-row b {
+                color: #D3E5F5;
+                font-weight: 600;
+            }
+            .chips {
+                margin-top: 4.0mm;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.6mm;
+            }
+            .chip {
+                border: 0.28mm solid #D9E6F3;
+                background: #F4F9FE;
+                color: #23527F;
+                border-radius: 1.2mm;
+                padding: 1.2mm 2.2mm;
+                font-size: 7.2pt;
+                font-weight: 500;
+                letter-spacing: 0.1px;
+            }
+            .chip.solid {
+                background: #0F2A45;
+                border-color: #0F2A45;
+                color: #fff;
+            }
+        </style>
+    </head>
+    <body>
+
+        <!-- Shared PanonView wordmark -->
+        <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+            <defs>
+                <linearGradient id="pvGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0877CB"/>
+                    <stop offset="100%" stop-color="#8EB9FF"/>
+                </linearGradient>
+                <symbol id="pvLogo" viewbox="0 0 400 52">
+                    <g fill="none">
+                        <path d="M11 4H6a2 2 0 0 0-2 2v5M27 4h5a2 2 0 0 1 2 2v5M11 32H6a2 2 0 0 1-2-2v-5M27 32h5a2 2 0 0 0 2-2v-5" stroke="#2BA3FF" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M13 12v12M18 9v18M23 12v12" stroke="#2BA3FF" stroke-width="2.4" stroke-linecap="round"/>
+                        <text x="48" y="26" font-family="Inter, -apple-system, sans-serif" font-size="26" font-weight="600" fill="url(#pvGrad)" letter-spacing="-0.5">Panon<tspan font-weight="400" fill="currentColor">View</tspan>
+                        </text>
+                    </g>
+                </symbol>
+            </defs>
+        </svg>
+
+        <!-- 01 — Cover -->
+        <section class="page">
+            <div class="cover-top">
+                <div class="gridlines"></div>
+                <div class="glow"></div>
+                <div class="cover-brandrow">
+                    <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+                    <div class="doclabel">
+                        <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2 Edition<br/>Rev. 2026-11
+                    </div>
+                </div>
+                <div class="cover-copy">
+                    <div class="kicker">Extended Client &middot; PanonView Platform</div>
+                    <h1>PanonView<br/>Player</h1>
+                    <div class="cover-rule"></div>
+                    <div class="cover-sub">Boot straight into the screen.<br/>Control it from anywhere.</div>
+                    <div class="cover-desc">The extended client app of the PanonView Platform: a cross-platform signage agent built with Tauri 2, Rust and React. It plays platform projects fullscreen and chrome-less, exposes a secured HTTP API on port 8787 for the central console, and keeps playing the last good page when the network is down.</div>
+                </div>
+                <div class="cover-shot">
+                    <div class="bar">
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <span class="t">Player &middot; Fullscreen</span>
+                    </div>
+                    <div class="screen-mock">
+                        <div class="mock-brand">Panon<span>View</span>
+                        </div>
+                        <div class="mock-url">https://dashboard.company.com</div>
+                        <div class="mock-cards">
+                            <i></i>
+                            <i></i>
+                            <i></i>
+                        </div>
+                        <div class="mock-badge">WebView &middot; No Chrome</div>
+                    </div>
+                    <div class="cap">
+                        <span>Kiosk WebView</span>
+                        <b>Always-On</b>
+                    </div>
+                </div>
+                <div class="cover-stats">
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="sv">0<span>
+                                    UI</span>
+                            </div>
+                            <div class="sl">Chrome on boot</div>
+                        </div>
+                        <div class="stat">
+                            <div class="sv">8787</div>
+                            <div class="sl">Control API port</div>
+                        </div>
+                        <div class="stat">
+                            <div class="sv">SQLite</div>
+                            <div class="sl">Durable local state</div>
+                        </div>
+                        <div class="stat">
+                            <div class="sv">24<span>/7</span>
+                            </div>
+                            <div class="sl">Unattended playback</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cover-bottom">
+                <div class="pillars">
+                    <div class="pillar">
+                        <div class="pn0">01 &mdash; Boot</div>
+                        <div class="pt">Player Mode</div>
+                        <div class="pb">Launches fullscreen, borderless and straight into the configured URL. No address bar, no normal UI.</div>
+                    </div>
+                    <div class="pillar">
+                        <div class="pn0">02 &mdash; Control</div>
+                        <div class="pt">HTTP API</div>
+                        <div class="pb">An embedded Axum server on 0.0.0.0:8787 lets a CMS, ERP, dashboard or scheduler drive the screen.</div>
+                    </div>
+                    <div class="pillar">
+                        <div class="pn0">03 &mdash; Schedule</div>
+                        <div class="pt">Time & Rotation</div>
+                        <div class="pb">Time-based and rotation schedules with priorities, plus temporary override pages that auto-resume.</div>
+                    </div>
+                    <div class="pillar">
+                        <div class="pn0">04 &mdash; Recover</div>
+                        <div class="pt">Offline-First</div>
+                        <div class="pb">The scheduler keeps running and the last successful page stays on screen instead of going blank.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 — Overview -->
+        <section class="page">
+            <div class="pad">
+                <div class="rh">
+                    <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+                    <div class="rh-r">
+                        <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+                </div>
+                <h2>
+                    <span class="num">01</span>Platform Overview</h2>
+                <p class="lead">PanonView Player is the extended client app of the PanonView Platform &mdash; the edge agent that turns a TV, kiosk or video-wall PC into a managed display. It renders what the platform authors and publishes, keeps playing when the network drops, and exposes exactly the control surface the central console needs. Internally it combines a Tauri desktop shell, a Rust control core and a React admin surface in one small installable package.</p>
+
+                <h3>What the player replaces</h3>
+                <div class="split">
+                    <table class="t dense">
+                        <thead>
+                            <tr>
+                                <th>Typical obstacle</th>
+                                <th>Operational consequence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Browser left open manually</td>
+                                <td>Address bar, updates and dialogs interrupt the screen</td>
+                            </tr>
+                            <tr>
+                                <td>No remote control</td>
+                                <td>Every change needs a site visit or remote desktop</td>
+                            </tr>
+       
+                            <tr>
+                                <td>Unauthenticated local API</td>
+                                <td>Any LAN client can change what is displayed</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="t dense">
+                        <thead>
+                            <tr>
+                                <th>Player capability</th>
+                                <th>Business outcome</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Fullscreen player mode</td>
+                                <td>Boots directly into content, kiosk-style</td>
+                            </tr>
+                            <tr>
+                                <td>Time + rotation scheduling</td>
+                                <td>Content changes automatically by day and time</td>
+                            </tr>
+                            <tr>
+                                <td>Priority overrides</td>
+                                <td>Emergency dashboards temporarily take over</td>
+                            </tr>
+                           
+                            <tr>
+                                <td>API key + CIDR allowlist</td>
+                                <td>Only approved clients can drive the player</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Design principles</h3>
+                <div class="grid3">
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">One source of truth</div>
+                        <div class="cb">The Rust DisplayController mediates every display change. HTTP API, scheduler and admin UI all route through it; nothing manipulates the WebView independently.</div>
+                    </div>
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">Offline-first by default</div>
+                        <div class="cb">The scheduler keeps running locally. If a page fails, the player retains the last successful page instead of showing a blank screen.</div>
+                    </div>
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">Identity from day one</div>
+                        <div class="cb">Device ID, name, location and group are stored in SQLite so the player can later join a central management platform without depending on it.</div>
+                    </div>
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">Remote-control ready</div>
+                        <div class="cb">A real embedded Axum server, not a localhost asset plugin, exposes a documented REST API on port 8787.</div>
+                    </div>
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">Remembers the screen</div>
+                        <div class="cb">Current URL, back/forward history and display state are persisted in SQLite and local storage, so a reboot returns to the same page.</div>
+                    </div>
+                    <div class="card">
+                        <div class="ct" style="margin-top:0">Admin without distraction</div>
+                        <div class="cb">The React admin UI is hidden at
+                            <span class="mono">#/admin</span>; normal boots bypass it and go straight to fullscreen playback.</div>
+                    </div>
+                </div>
+
+                <div class="note">
+                    <b>Relationship to the PanonView Platform.</b>
+                    The platform is the central console that designs, publishes, schedules and operates screens. The Player is the client that displays that output on site. The platform registers each player by IP, port and API key, then drives it through the player's REST API for status, live screenshots and remote actions &mdash; while the player continues scheduling and recovering entirely on its own if the console is unreachable.</div>
+            </div>
+            <div class="rf">
+                <span>PanonView Player &mdash; Digital Signage Agent</span>
+                <span class="pn">02</span>
+            </div>
+        </section>
+
+        <!-- 03 — Architecture -->
+        <section class="page">
+            <div class="pad">
+                <div class="rh">
+                    <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+                    <div class="rh-r">
+                        <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+                </div>
+                <h2>
+                    <span class="num">02</span>Platform Architecture</h2>
+                <p class="lead">A small, layered runtime: an experience layer for the screen and admin surfaces, a Rust control core that owns every display decision, a persistence layer for durable state, and an embedded HTTP edge for remote clients.</p>
+
+                <h3>Logical architecture</h3>
+                <div class="arch">
+                    <div class="arch-layer dark">
+                        <div class="lt">Experience & Access
+                            <em>React + Tauri WebView</em>
+                        </div>
+                        <div class="arch-cols">
+                            <div class="arch-box">
+                                <div class="bt">Player View</div>
+                                <div class="bp">fullscreen</div>
+                                <div class="bd">Borderless WebView showing the active page; no address bar or normal UI</div>
+                            </div>
+                            <div class="arch-box">
+                                <div class="bt">Admin UI</div>
+                                <div class="bp">#/admin</div>
+                                <div class="bd">Dashboard, pages, schedules and settings; reachable in-app and via the web console</div>
+                            </div>
+                            <div class="arch-box">
+                                <div class="bt">HTTP Clients</div>
+                                <div class="bp">:8787</div>
+                                <div class="bd">CMS, ERP, dashboard, scheduler or any REST client</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">&#9660;</div>
+                    <div class="arch-layer">
+                        <div class="lt">Control Core
+                            <em>Rust &middot; Tauri 2 &middot; Tokio</em>
+                        </div>
+                        DisplayController (single source of truth) &middot; Axum API router &middot; Scheduler tick &middot; Tauri IPC commands &middot; Auth middleware (API key / Bearer + CIDR)
+                    </div>
+                    <div class="arch-arrow">&#9660;</div>
+                    <div class="arch-row2">
+                        <div class="arch-layer">
+                            <div class="lt">Persistence</div>SQLite with versioned migrations (<span class="mono">user_version</span>) &middot; pages &middot; schedules &middot; display state &middot; commands &middot; settings &middot; device identity</div>
+                        <div class="arch-layer">
+                            <div class="lt">Runtime & Delivery</div>Tauri bundles for Windows, Linux, macOS &middot; Android target &middot; embedded UI bundle served at
+                            <span class="mono">/ui/</span>
+                            &middot; unauthenticated
+                            <span class="mono">/health</span>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">&#9660;</div>
+                    <div class="arch-layer ext">
+                        <div class="lt">External Systems</div>Remote web pages and dashboards &middot; LAN browsers &middot; REST automation &middot; central management platform (future)</div>
+                </div>
+
+
+                <h3>Component responsibilities</h3>
+                <table class="t dense mono">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Port / Surface</th>
+                            <th>Responsibility</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DisplayController</td>
+                            <td>Rust core</td>
+                            <td>Owns current URL, mode, history, overrides and every WebView change</td>
+                        </tr>
+                        <tr>
+                            <td>Scheduler</td>
+                            <td>Tokio task</td>
+                            <td>Evaluates time and rotation schedules, priorities and override expiry</td>
+                        </tr>
+                        <tr>
+                            <td>Auth middleware</td>
+                            <td>API layer</td>
+                            <td>API key / Bearer validation, CIDR allowlist and remote-control toggle</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    <b>Why a real server.</b>
+                    The control API is an embedded Axum server, not Tauri's localhost plugin. That keeps the API reachable on the LAN, documented like a normal REST service, and independent of app asset serving.</div>
+            </div>
+        </div>
+        <div class="rf">
+            <span>PanonView Player &mdash; Platform Architecture</span>
+            <span class="pn">03</span>
+        </div>
+</section>
+
+<!-- 04 — PanonView Platform Integration -->
+<section class="page">
+    <div class="pad">
+        <div class="rh">
+            <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+            <div class="rh-r">
+                <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+        </div>
+        <h2>
+            <span class="num">03</span>PanonView Platform Integration</h2>
+        <p class="lead">The Player is the extended client app of the PanonView Platform. The platform is the authoring and operations console &mdash; design, publish, schedule and fleet management. The player is the edge runtime that renders the result on the physical screen and reports back what it is showing.</p>
+
+        <h3>Division of responsibility</h3>
+        <table class="t dense">
+            <thead>
+                <tr>
+                    <th style="width:20%">Concern</th>
+                    <th>PanonView Platform &mdash; central</th>
+                    <th>PanonView Player &mdash; edge</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Content</td>
+                    <td>No-code dashboard designer on a resolution-locked canvas</td>
+                    <td>Renders the published viewer or any web URL in a fullscreen WebView</td>
+                </tr>
+                <tr>
+                    <td>Distribution</td>
+                    <td>Publishes projects plus viewer and slideshow URLs</td>
+                    <td>Loads the target URL and keeps it on screen</td>
+                </tr>
+                <tr>
+                    <td>Time rules</td>
+                    <td>Owns platform-wide scheduling and priority policy</td>
+                    <td>Enforces local TIME and ROTATION schedules plus overrides</td>
+                </tr>
+                <tr>
+                    <td>Fleet state</td>
+                    <td>Registers players and shows live status and screenshots</td>
+                    <td>Reports device identity, platform, version and current URL</td>
+                </tr>
+                <tr>
+                    <td>Recovery</td>
+                    <td>Re-issues commands when a player becomes reachable</td>
+                    <td>Keeps the last good page and reschedules autonomously</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Integration contract &mdash; platform action to player endpoint</h3>
+        <table class="t api">
+            <thead>
+                <tr>
+                    <th>Platform action</th>
+                    <th>Player endpoint</th>
+                    <th>Behaviour</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Register player</td>
+                    <td>GET /device &middot; GET /status</td>
+                    <td>Reads device id, name, location, group, hostname, platform and version</td>
+                </tr>
+                <tr>
+                    <td>Refresh display</td>
+                    <td>POST /display/refresh</td>
+                    <td>Reloads the current page without losing its place</td>
+                </tr>
+                <tr>
+                    <td>Reset to default</td>
+                    <td>POST /display/reset</td>
+                    <td>Returns to the scheduled or default page</td>
+                </tr>
+                <tr>
+                    <td>Live screenshot</td>
+                    <td>GET /display/screenshot</td>
+                    <td>PNG snapshot of what the screen is showing right now</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="split">
+            <div class="card solid">
+                <div class="ct" style="margin-top:0">Connection model</div>
+                <div class="cb">The platform reaches each player over the LAN at
+                    <span class="mono">http://<player-ip>:8787/api/v1</span>
+                    using the API key registered for that player. No inbound tunnel or extra service on the server is required.</div>
+            </div>
+            <div class="card solid">
+                <div class="ct" style="margin-top:0">Viewer URL targeting</div>
+                <div class="cb">A published project is opened through the platform viewer, for example
+                    <span class="mono">/view?id=&hellip;&mode=player&apiKey=&hellip;</span>, so the player shows exactly the designed canvas and resolves its data bindings.</div>
+            </div>
+        </div>
+
+        <div class="note">
+            <b>Graceful degradation.</b>
+            The player never depends on the platform to stay on air. It boots, schedules, overrides and recovers locally; when the console returns, status, screenshots and remote actions resume over the same API with no site visit.</div>
+        <div class="chips">
+            <span class="chip solid">Fleet-ready client</span>
+            <span class="chip">Register by IP and API key</span>
+            <span class="chip">Live screenshots</span>
+            <span class="chip">Remote actions</span>
+            <span class="chip">Bulk operations</span>
+            <span class="chip">Status and version sync</span>
+            <span class="chip">Autonomous offline</span>
+        </div>
+    </div>
+    <div class="rf">
+        <span>PanonView Player &mdash; Platform Integration</span>
+        <span class="pn">04</span>
+    </div>
+</section>
+
+<!-- 05 — Capabilities -->
+<section class="page">
+<div class="pad">
+    <div class="rh">
+        <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+        <div class="rh-r">
+            <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+    </div>
+    <h2>
+        <span class="num">04</span>Player Capabilities</h2>
+    <p class="lead">Everything needed to run an unattended screen: boot behavior, scheduling, overrides, persistence, administrative access and a documented remote-control surface.</p>
+
+    <h3>Core capabilities</h3>
+    <div class="grid3">
+        <div class="card">
+            <div class="idx">01</div>
+            <div class="ct">Player mode</div>
+            <div class="cb">Boots fullscreen, chrome-less and straight to the configured URL. Designed for kiosk and signage displays.</div>
+        </div>
+        <div class="card">
+            <div class="idx">02</div>
+            <div class="ct">Embedded HTTP API</div>
+            <div class="cb">Axum server on 0.0.0.0:8787 for remote control from a REST API, ERP, CMS, dashboard or scheduler.</div>
+        </div>
+        <div class="card">
+            <div class="idx">03</div>
+            <div class="ct">SQLite persistence</div>
+            <div class="cb">Versioned migrations keep pages, schedules, display state, commands, settings and device identity across upgrades.</div>
+        </div>
+        <div class="card">
+            <div class="idx">04</div>
+            <div class="ct">Scheduling</div>
+            <div class="cb">Time-based schedules by day and time window, plus rotation schedules that cycle pages by duration.</div>
+        </div>
+        <div class="card">
+            <div class="idx">05</div>
+            <div class="ct">Priority overrides</div>
+            <div class="cb">Emergency or temporary pages supersede the scheduler and auto-resume when they expire.</div>
+        </div>
+        <div class="card">
+            <div class="idx">06</div>
+            <div class="ct">Offline-first playback</div>
+            <div class="cb">The scheduler keeps running locally and the last successful page remains on screen instead of going blank.</div>
+        </div>
+        <div class="card">
+            <div class="idx">07</div>
+            <div class="ct">Last-page memory</div>
+            <div class="cb">Current page/URL and back/forward history persist in SQLite and local storage, surviving stop, crash or reboot.</div>
+        </div>
+        <div class="card">
+            <div class="idx">08</div>
+            <div class="ct">Hidden admin UI</div>
+            <div class="cb">React console at
+                <span class="mono">#/admin</span>, plus a LAN web console at
+                <span class="mono">/ui/</span>
+                for headless players.</div>
+        </div>
+        <div class="card">
+            <div class="idx">09</div>
+            <div class="ct">Secure by default</div>
+            <div class="cb">API key / Bearer auth, CIDR IP allowlist and a remote-control toggle; a key is generated on first boot.</div>
+        </div>
+    </div>
+
+    <h3>Scheduling precedence</h3>
+    <table class="t dense">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Rule</th>
+                <th>Behavior</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Active override</td>
+                <td>Highest priority until its duration expires, then the scheduler resumes automatically</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Active TIME schedule</td>
+                <td>The matching time window with the highest
+                    <span class="mono">priority</span>
+                    wins</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>ROTATION schedules</td>
+                <td>Pages cycle in sequence, each shown for its configured duration</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Last successful page</td>
+                <td>Offline fallback when no schedule or page can be resolved</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>First enabled page</td>
+                <td>Final fallback for a fresh or empty schedule set</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+</div>
+<div class="rf">
+    <span>PanonView Player &mdash; Player Capabilities</span>
+    <span class="pn">05</span>
+</section>
+
+<!-- 06 — API & Services -->
+<section class="page">
+<div class="pad">
+    <div class="rh">
+        <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+        <div class="rh-r">
+            <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+    </div>
+    <h2>
+        <span class="num">05</span>Control API & Services</h2>
+    <p class="lead">A small REST surface under
+        <span class="mono">/api/v1</span>. The same controller serves the HTTP API, the scheduler and the admin UI, so every path produces consistent state.</p>
+
+    <h3>Authentication</h3>
+    <div class="grid2">
+        <div class="card">
+            <div class="ct" style="margin-top:0">API key / Bearer</div>
+            <div class="cb">Send
+                <span class="mono">X-API-Key: &lt;key&gt;</span>
+                or
+                <span class="mono">Authorization: Bearer &lt;key&gt;</span>. The key is generated on first boot and shown under Settings &rarr; API Key.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">LAN access controls</div>
+            <div class="cb">CIDR IP allowlisting (for example
+                <span class="mono">192.168.1.0/24</span>), plus an Allow Remote Control toggle for non-loopback clients.</div>
+        </div>
+    </div>
+
+    <h3>Endpoint map</h3>
+    <table class="t api">
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Endpoints</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Display</td>
+                <td>GET /display &middot; POST /display &middot; POST /display/page &middot; POST /display/override &middot; POST /display/refresh &middot; POST /display/back &middot; POST /display/forward &middot; POST /display/reset &middot; GET /display/screenshot</td>
+                <td>Read or change the active page, push a temporary override, navigate history, capture a screenshot</td>
+            </tr>
+            <tr>
+                <td>Pages</td>
+                <td>GET /pages &middot; GET /pages/:id &middot; POST /pages &middot; PUT /pages/:id &middot; DELETE /pages/:id</td>
+                <td>CRUD for saved pages and URLs</td>
+            </tr>
+            <tr>
+                <td>Schedules</td>
+                <td>GET /schedules &middot; GET /schedules/:id &middot; POST /schedules &middot; PUT /schedules/:id &middot; DELETE /schedules/:id</td>
+                <td>CRUD for time and rotation schedules</td>
+            </tr>
+            <tr>
+                <td>Settings</td>
+                <td>GET /settings &middot; PUT /settings</td>
+                <td>Read or update player settings such as the HTTP port</td>
+            </tr>
+            <tr>
+                <td>Device</td>
+                <td>GET /device &middot; PUT /device</td>
+                <td>Read or set name, location and group</td>
+            </tr>
+            <tr>
+                <td>System</td>
+                <td>GET /status &middot; GET /commands &middot; POST /restart &middot; POST /shutdown &middot; POST /reload</td>
+                <td>Health, command history and lifecycle actions</td>
+            </tr>
+            <tr>
+                <td>Probe</td>
+                <td>GET /health</td>
+                <td>Unauthenticated liveness check</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Example requests</h3>
+    <div class="split">
+        <pre class="code"><span class="c"># Show a page immediately</span>
+curl -X POST http://192.168.1.20:8787/api/v1/display \
+  -H <span class="k">"X-API-Key: $PV_KEY"</span> \
+  -H <span class="k">"Content-Type: application/json"</span> \
+  -d '{"url":"https://dashboard.company.com"}'</pre>
+        <pre class="code"><span class="c"># Emergency override for 5 minutes</span>
+curl -X POST http://192.168.1.20:8787/api/v1/display/override \
+  -H <span class="k">"X-API-Key: $PV_KEY"</span> \
+  -H <span class="k">"Content-Type: application/json"</span> \
+  -d '{"url":"https://dashboard.company.com/alert","duration":300,"priority":100}'</pre>
+    </div>
+</div>
+<div class="rf">
+    <span>PanonView Player &mdash; Control API & Services</span>
+    <span class="pn">06</span>
+</section>
+
+<!-- 07 — Security, operations, use cases -->
+<section class="page">
+<div class="pad">
+    <div class="rh">
+        <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+        <div class="rh-r">
+            <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+    </div>
+    <h2>
+        <span class="num">06</span>Security, Operations & Use Cases</h2>
+    <p class="lead">Designed for screens that are physically remote but must remain trustworthy, recoverable and easy to operate.</p>
+
+    <h3>Security controls</h3>
+    <table class="t dense">
+        <thead>
+            <tr>
+                <th>Control</th>
+                <th>Implementation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Authentication</td>
+                <td>API key and Bearer token enforced for all HTTP clients, loopback included</td>
+            </tr>
+            <tr>
+                <td>Network allowlist</td>
+                <td>CIDR-based client filtering, for example
+                    <span class="mono">192.168.1.0/24, 10.10.0.0/16</span>
+                </td>
+            </tr>
+            <tr>
+                <td>Remote-control switch</td>
+                <td>Allow Remote Control toggle applies to non-loopback clients</td>
+            </tr>
+            <tr>
+                <td>Liveness probe</td>
+                <td>
+                    <span class="mono">GET /health</span>
+                    remains unauthenticated for monitoring only</td>
+            </tr>
+        </tbody>
+    </table>
+    <h3>Platform notes</h3>
+    <table class="t dense">
+        <thead>
+            <tr>
+                <th>Platform</th>
+                <th>Behavior</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Windows / Linux / macOS</td>
+                <td>Native fullscreen, always-on-top and borderless window; shared Rust core and HTTP API</td>
+            </tr>
+            <tr>
+                <td>Android / Android TV</td>
+                <td>Same codebase; device-test WebView behavior, immersive fullscreen, D-pad focus, autostart and kiosk mode</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Representative use cases</h3>
+    <div class="grid3">
+        <div class="card">
+            <div class="ct" style="margin-top:0">Corporate signage</div>
+            <div class="cb">Lobby dashboards, meeting-room status, internal announcements and KPI screens driven by an existing CMS.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">Retail & hospitality</div>
+            <div class="cb">Menu boards, promotions and queue displays that switch by time of day and recover from network loss.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">Operations & industry</div>
+            <div class="cb">Factory, warehouse or control-room screens with priority emergency overrides and offline fallback.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">Education</div>
+            <div class="cb">Campus wayfinding, classroom displays and event schedules managed over the LAN.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">Healthcare</div>
+            <div class="cb">Waiting-room information and staff dashboards where the last good page must stay visible.</div>
+        </div>
+        <div class="card">
+            <div class="ct" style="margin-top:0">Managed fleets</div>
+            <div class="cb">Device identity and a documented API provide a clean path to a future central management platform.</div>
+        </div>
+    </div>
+
+    <div class="closing">
+        <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+        <div class="ct2">PanonView Player &mdash; the platform's dependable screen, controlled from anywhere.</div>
+        <div class="cb2">Extended client app of the PanonView Platform &middot; Tauri 2 + Rust + React &middot; Fullscreen WebView &middot; Embedded REST API &middot; SQLite persistence &middot; Time and rotation scheduling &middot; Priority overrides &middot; Offline-first playback &middot; API key and CIDR security.</div>
+        <div class="meta-row">
+            <span>Document
+                <b>Player Datasheet</b>
+            </span>
+            <span>Release
+                <b>1.0</b>
+            </span>
+            <span>Rev.
+                <b>2026-11</b>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="rf">
+    <span>PanonView Player &mdash; Security, Operations & Use Cases</span>
+    <span class="pn">07</span>
+</div></section></body></html>
