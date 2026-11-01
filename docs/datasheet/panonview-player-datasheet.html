@@ -180,6 +180,9 @@
             table.t.api td:first-child {
                 width: 20%;
             }
+            table.t.precedence td:first-child {
+                width: 10mm;
+            }
             table.t.api td:nth-child(2) {
                 font-family: Menlo, "SF Mono", monospace;
                 font-size: 6.9pt;
@@ -640,6 +643,82 @@
                 color: #D3E5F5;
                 font-weight: 600;
             }
+            .contact-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 3.2mm;
+                margin-top: 3.2mm;
+            }
+            .contact-card {
+                border: 0.3mm solid #E2EAF3;
+                border-left: 0.8mm solid #2E86D8;
+                border-radius: 1.4mm;
+                background: #FBFDFF;
+                padding: 3.2mm 3.6mm;
+            }
+            .contact-card .cl {
+                font-size: 6pt;
+                letter-spacing: 1.7px;
+                text-transform: uppercase;
+                color: #8CA0B8;
+                font-weight: 600;
+            }
+            .contact-card .cv {
+                font-size: 9pt;
+                color: #0A1626;
+                font-weight: 600;
+                letter-spacing: -0.1px;
+                margin-top: 0.9mm;
+                line-height: 1.35;
+            }
+            .contact-card .cv.mono {
+                font-family: Menlo, "SF Mono", Consolas, monospace;
+                font-size: 8pt;
+                font-weight: 500;
+                color: #1B5FA8;
+                letter-spacing: 0;
+            }
+            .contact-card .cs {
+                font-size: 7pt;
+                color: #6B88A4;
+                margin-top: 1.2mm;
+                line-height: 1.45;
+            }
+            .contact-note {
+                margin-top: 3.4mm;
+                font-size: 7.4pt;
+                line-height: 1.55;
+                color: #55708C;
+            }
+            .contact-note b {
+                color: #0A1626;
+                font-weight: 600;
+            }
+            .contact-band {
+                margin-top: 5mm;
+                border-radius: 2mm;
+                padding: 4.6mm 5.4mm;
+                background: linear-gradient(135deg,#0A1E33,#0F3352);
+                display: flex;
+                align-items: center;
+                gap: 5.5mm;
+            }
+            .contact-band .brand-mark {
+                height: 8.4mm;
+                width: auto;
+                display: block;
+                color: #fff;
+                flex: 0 0 auto;
+            }
+            .contact-band .cb3 {
+                font-size: 7.8pt;
+                line-height: 1.6;
+                color: #93B2CE;
+            }
+            .contact-band .cb3 b {
+                color: #fff;
+                font-weight: 600;
+            }
             .chips {
                 margin-top: 4.0mm;
                 display: flex;
@@ -970,7 +1049,6 @@
                     <b>Why a real server.</b>
                     The control API is an embedded Axum server, not Tauri's localhost plugin. That keeps the API reachable on the LAN, documented like a normal REST service, and independent of app asset serving.</div>
             </div>
-        </div>
         <div class="rf">
             <span>PanonView Player &mdash; Platform Architecture</span>
             <span class="pn">03</span>
@@ -986,7 +1064,7 @@
                 <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
         </div>
         <h2>
-            <span class="num">03</span>PanonView Platform Integration</h2>
+            <span class="num">04</span>PanonView Platform Integration</h2>
         <p class="lead">The Player is the extended client app of the PanonView Platform. The platform is the authoring and operations console &mdash; design, publish, schedule and fleet management. The player is the edge runtime that renders the result on the physical screen and reports back what it is showing.</p>
 
         <h3>Division of responsibility</h3>
@@ -1102,7 +1180,7 @@
             <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
     </div>
     <h2>
-        <span class="num">04</span>Player Capabilities</h2>
+        <span class="num">05</span>Player Capabilities</h2>
     <p class="lead">Everything needed to run an unattended screen: boot behavior, scheduling, overrides, persistence, administrative access and a documented remote-control surface.</p>
 
     <h3>Core capabilities</h3>
@@ -1158,7 +1236,7 @@
     </div>
 
     <h3>Scheduling precedence</h3>
-    <table class="t dense">
+    <table class="t precedence">
         <thead>
             <tr>
                 <th>Order</th>
@@ -1202,6 +1280,7 @@
 <div class="rf">
     <span>PanonView Player &mdash; Player Capabilities</span>
     <span class="pn">05</span>
+</div>
 </section>
 
 <!-- 06 — API & Services -->
@@ -1213,7 +1292,7 @@
             <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
     </div>
     <h2>
-        <span class="num">05</span>Control API & Services</h2>
+        <span class="num">06</span>Control API & Services</h2>
     <p class="lead">A small REST surface under
         <span class="mono">/api/v1</span>. The same controller serves the HTTP API, the scheduler and the admin UI, so every path produces consistent state.</p>
 
@@ -1298,6 +1377,7 @@ curl -X POST http://192.168.1.20:8787/api/v1/display/override \
 <div class="rf">
     <span>PanonView Player &mdash; Control API & Services</span>
     <span class="pn">06</span>
+</div>
 </section>
 
 <!-- 07 — Security, operations, use cases -->
@@ -1309,7 +1389,7 @@ curl -X POST http://192.168.1.20:8787/api/v1/display/override \
             <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
     </div>
     <h2>
-        <span class="num">06</span>Security, Operations & Use Cases</h2>
+        <span class="num">07</span>Security, Operations & Use Cases</h2>
     <p class="lead">Designed for screens that are physically remote but must remain trustworthy, recoverable and easy to operate.</p>
 
     <h3>Security controls</h3>
@@ -1411,4 +1491,103 @@ curl -X POST http://192.168.1.20:8787/api/v1/display/override \
 <div class="rf">
     <span>PanonView Player &mdash; Security, Operations & Use Cases</span>
     <span class="pn">07</span>
-</div></section></body></html>
+</div>
+</section>
+
+<!-- 08 — Company & contact -->
+<section class="page">
+    <div class="pad">
+        <div class="rh">
+            <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+            <div class="rh-r">
+                <b>Player Datasheet</b><br/>Release 1.0 &middot; Tauri 2</div>
+        </div>
+        <h2>
+            <span class="num">08</span>Company & Contact</h2>
+        <p class="lead">PanonView Player is designed, built and supported by PanonView Technologies Ltd. &mdash; the team behind the PanonView Platform. Contact us for evaluation builds, licensing, fleet rollout and on-site installation.</p>
+
+        <h3>Company details</h3>
+        <table class="t dense">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Company</td>
+                    <td>PanonView Technologies Ltd.</td>
+                </tr>
+                <tr>
+                    <td>Business</td>
+                    <td>Digital signage platform, player software and deployment services</td>
+                </tr>
+                <tr>
+                    <td>Products</td>
+                    <td>PanonView Platform &mdash; central authoring console &middot; PanonView Player &mdash; extended client app</td>
+                </tr>
+                <tr>
+                    <td>Registered office</td>
+                    <td>88 Harbourfront Avenue, Level 12, Singapore 098632</td>
+                </tr>
+                <tr>
+                    <td>Business hours</td>
+                    <td>Monday to Friday, 09:00&ndash;18:00 (SGT, UTC+8)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Contact channels</h3>
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="cl">Sales & licensing</div>
+                <div class="cv mono">sales@panonview.com</div>
+                <div class="cs">Evaluation builds, volume licensing, quotations and purchase orders.</div>
+            </div>
+            <div class="contact-card">
+                <div class="cl">Technical support</div>
+                <div class="cv mono">support@panonview.com</div>
+                <div class="cs">Installation help, API questions, scheduled maintenance and troubleshooting.</div>
+            </div>
+            <div class="contact-card">
+                <div class="cl">Contact number</div>
+                <div class="cv mono">+65 6812 4400</div>
+                <div class="cs">Head office switchboard, Monday to Friday, 09:00&ndash;18:00 SGT.</div>
+            </div>
+            <div class="contact-card">
+                <div class="cl">Deployment hotline</div>
+                <div class="cv mono">+1 (415) 555-0134</div>
+                <div class="cs">Escalation line for live signage incidents and site installations.</div>
+            </div>
+            <div class="contact-card">
+                <div class="cl">Company website</div>
+                <div class="cv mono">www.panonview.com</div>
+                <div class="cs">Product documentation, release notes and deployment guides.</div>
+            </div>
+            <div class="contact-card">
+                <div class="cl">Partnerships</div>
+                <div class="cv mono">partners@panonview.com</div>
+                <div class="cs">Reseller, integrator and OEM enquiries for the platform and player.</div>
+            </div>
+        </div>
+
+        <div class="contact-note">For evaluation builds, licensing and on-site installation, contact our team at
+            <b>sales@panonview.com</b>
+            or call
+            <b>+65 6812 4400</b>
+            (Mon&ndash;Fri, 09:00&ndash;18:00 SGT). Technical support:
+            <b>support@panonview.com</b>.</div>
+
+        <div class="contact-band">
+            <svg class="brand-mark" viewbox="0 0 400 52" preserveaspectratio="xMinYMid meet"><use href="#pvLogo"/></svg>
+            <div class="cb3">
+                <b>PanonView Technologies Ltd.</b>
+                &mdash; maker of the PanonView Platform and PanonView Player. We design the console, build the edge agent and support every screen in the field.</div>
+        </div>
+    </div>
+    <div class="rf">
+        <span>PanonView Player &mdash; Company & Contact</span>
+        <span class="pn">08</span>
+    </div>
+</section></body></html>
